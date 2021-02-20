@@ -1,0 +1,19 @@
+.view-switch {
+    z-index: 1000;
+    position: fixed;
+    top: 32px;
+    right: 32px;
+}
+
+.table {
+    padding-left: 32px;
+    padding-right: 32px;
+}
+
+.search-bar {
+    height: 100px;
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 28px;
+    padding-left: 32px;
+}

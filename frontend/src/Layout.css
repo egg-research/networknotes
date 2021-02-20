@@ -1,0 +1,24 @@
+.sidebar {
+    background-color: azure;
+    max-width: 280px;
+    min-width: 180px;
+    padding-top: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    flex: 1;
+    height: 100%;
+}
+
+.content {
+    height: 100%;
+    flex: 5;
+}
+
+.content-padding {
+    padding-left: 32px;
+}
+
+.root {
+    height: 100vh;
+    display: flex;
+}
