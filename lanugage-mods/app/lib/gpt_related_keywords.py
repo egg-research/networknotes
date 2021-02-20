@@ -5,7 +5,12 @@ def getRelatedKeywordGPT():
     # Prime GPT object to produce related keywords
     gpt = GPT(engine="curie",
             temperature=0.5,
-            max_tokens=100)
+            max_tokens=100,
+            input_prefix="input: ",
+            input_suffix="\n",
+            output_prefix="output: ",
+            output_suffix="",
+            append_output_prefix_to_query=False)
 
     gpt.add_example(Example('cerebellum, motor control, sensorimotor calibration, purkinje cell',
                             'motor learning, thin neuronal layers, synaptic plasticity, parallel connections, granule cell'))
