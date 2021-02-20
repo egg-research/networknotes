@@ -4,3 +4,16 @@
     top: 32px;
     right: 32px;
 }
+
+.table {
+    padding-left: 32px;
+    padding-right: 32px;
+}
+
+.search-bar {
+    height: 100px;
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 28px;
+    padding-left: 32px;
+}
