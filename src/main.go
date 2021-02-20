@@ -163,7 +163,7 @@ func main() {
 	ctx := context.Background()
 	// conf := &firebase.Config{ProjectID: "networknotes-305405"}
 	// app, err := firebase.NewApp(ctx, conf)
-	sa := option.WithCredentialsFile("networknotes-305405-107f89927bbb.json")
+	sa := option.WithCredentialsFile("credentials.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
