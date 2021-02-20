@@ -1,0 +1,27 @@
+.sidebar {
+    background-color: azure;
+    max-width: 280px;
+    padding-left: 16px !important;
+}
+
+.first-content {
+    padding-top: 16px;
+}
+
+.content {
+    padding-left: 4px;
+    padding-right: 16px;
+}
+
+.root {
+    height: 100vh;
+}
+
+.ant-divider {
+    background-color: black;
+}
+
+.ant-row {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
