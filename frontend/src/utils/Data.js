@@ -1,11 +1,19 @@
 export function genRandomTree(N = 300, reverse = false) {
   const data = {
-    nodes: [...Array(N).keys()].map((i) => ({ id: i })),
+    nodes: [...Array(N).keys()].map((i) => ({
+      id: i,
+      name: ['Intro to Machine Learning', 'Advanced Data Structures'][
+        Math.round(Math.random() * 2) - 1
+      ],
+    })),
     links: [...Array(N).keys()]
       .filter((id) => id)
       .map((id) => ({
         [reverse ? 'target' : 'source']: id,
         [reverse ? 'source' : 'target']: Math.round(Math.random() * (id - 1)),
+        name: ['Intro to Machine Learning', 'Advanced Data Structures'][
+          Math.round(Math.random() * 2) - 1
+        ],
       })),
   };
 
