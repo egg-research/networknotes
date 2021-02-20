@@ -1,0 +1,6 @@
+.view-switch {
+    z-index: 1000;
+    position: fixed;
+    top: 32px;
+    right: 32px;
+}
