@@ -124,6 +124,8 @@ func requestHandler(driver neo4j.Driver, db Firestore, request string) func(http
 			resp, err = WriteDocFS(db, body.Doc.DocId, body.Doc.DocText, body.Doc.RawDocText)
 		case "readDoc":
 			resp, err = ReadDoc(driver, db, body)
+		case "readDocFS":
+			resp, err = ReadDocFS(db, body.Doc.DocId)
 		case "kw":
 			resp, err = kw(driver, db, body)
 		case "clear":
@@ -182,7 +184,8 @@ func main() {
 	serveMux.HandleFunc("/getDocId", requestHandler(driver, db, "getDocId"))
 	serveMux.HandleFunc("/writeDoc", requestHandler(driver, db, "writeDoc"))
 	serveMux.HandleFunc("/writeDocFS", requestHandler(driver, db, "writeDocFS"))
-	serveMux.HandleFunc("/readDoc", requestHandler(driver, db, "readDos"))
+	serveMux.HandleFunc("/readDoc", requestHandler(driver, db, "readDoc"))
+	serveMux.HandleFunc("/readDocFS", requestHandler(driver, db, "readDocFS"))
 	serveMux.HandleFunc("/kw", requestHandler(driver, db, "kw"))
 
 	fmt.Println("Running on localhost:8080")

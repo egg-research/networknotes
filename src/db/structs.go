@@ -18,7 +18,7 @@ type Keyword struct {
 }
 
 type User struct {
-	Uid string `json:"uid"`
+	Uid string `json:"uid,omitempty"`
 	Doc Document `json:"doc,omitempty"`
 	Kws []Keyword `json:"kws,omitempty"`
 }

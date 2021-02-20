@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
@@ -31,6 +32,40 @@ func GetDocId(driver neo4j.Driver, uid string, docName string) (interface{}, err
 	return docId, err
 }
 
+func GetDoc(driver neo4j.Driver, docId string) (interface{}, error) {
+	// null if user does not exist
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode:neo4j.AccessModeRead})
+	defer session.Close()
+
+	kws, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			`
+			MATCH (n) WHERE id(n) = $docId
+			MATCH (n) -[r]-> (kw)
+			RETURN kw.kw, r.kwText
+			`,
+			map[string]interface{}{"docId":docId})
+
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Next() {
+			return result.Record().Values, nil
+		}
+
+		return nil, result.Err()
+	})
+	return kws, err
+}
+
+func ReadDocFS(db Firestore, docId string) (interface{}, error) {
+	res, err := db.Client.Collection("docs").Doc(docId).Get(db.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	return res.Data(), err
+}
 
 func AddDoc(driver neo4j.Driver, uid string, docName string) (interface{}, error) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -102,16 +137,24 @@ func WriteDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error)
 }
 
 func ReadDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
-	// if doc already exists, return doc id
-	docId, err := GetDocId(driver, body.Uid, body.Doc.DocName)
-	if err != nil {
-		return nil, errors.New("Error getting document")
+	if body.Doc.DocId == "" {
+		return  nil, errors.New("Reading document requires document ID")
 	}
 
-	if docId != nil {
-		return docId, err
+	kws, kerr := GetDoc(driver, body.Doc.DocId)
+	if kerr != nil {
+		return nil, kerr
+	}
+	texts, terr := ReadDocFS(db, body.Doc.DocId) 
+	if terr != nil {
+		return nil, terr
 	}
 
-	return AddDoc(driver, body.Uid, body.Doc.DocName)
+	v := []interface{} {
+		kws,
+		texts,
+	}
+
+	fmt.Println("data", v)
+	return v, nil
 }
-
