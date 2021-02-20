@@ -5,6 +5,8 @@
   },
   "extends": [
     "plugin:react/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
     "airbnb",
     "prettier",
     "prettier/react"
@@ -26,5 +28,9 @@
     "react/jsx-props-no-spreading": "off",
     "react/require-default-props": "off",
     "react/forbid-prop-types": "off",
+    "import/no-unresolved": "off",
+    "no-console": "off",
+    "import/prefer-default-export": "off",
+    "react/prop-types": "off",
   },
 }
