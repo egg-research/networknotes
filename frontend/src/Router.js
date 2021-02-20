@@ -7,6 +7,7 @@ import { Button } from 'antd';
 import './Router.css';
 
 import EditorPage from './EditorPage';
+import GraphPage from './GraphPage';
 
 export default function Router() {
   return (
@@ -17,6 +18,9 @@ export default function Router() {
       />
       <BrowserRouter>
         <Switch>
+          <Route path='/graph'>
+            <GraphPage />
+          </Route>
           <Route path='/editor'>
             <EditorPage />
           </Route>
