@@ -110,13 +110,8 @@ func WriteDocFS(db Firestore, docId string, docText string, rawDocText interface
 }
 
 func WriteDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
-	uid, uerr := GetUid(driver, body.Uid)
-	if uerr != nil {
-		return nil, uerr
-	}
-
-	if uid == nil {
-		return nil, errors.New("User does not have an account")
+	if !CheckUid(driver, body.Uid) {
+		return nil, errors.New("User does not exist")
 	}
 
 	// if doc already exists, return doc id
@@ -137,6 +132,10 @@ func WriteDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error)
 }
 
 func ReadDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
+	if !CheckUid(driver, body.Uid) {
+		return nil, errors.New("User does not exist")
+	}
+
 	if body.Doc.DocId == "" {
 		return  nil, errors.New("Reading document requires document ID")
 	}
@@ -157,4 +156,37 @@ func ReadDoc(driver neo4j.Driver, db Firestore, body User) (interface{}, error) 
 
 	fmt.Println("data", v)
 	return v, nil
+}
+
+func CheckDocId(driver neo4j.Driver, docId string) (bool) {
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode:neo4j.AccessModeRead})
+	defer session.Close()
+
+	doc, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			`
+			MATCH (d:Document) WHERE id(d) == $docId 
+			RETURN id(d)
+			`,
+			map[string]interface{}{"docId":docId})
+
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Next() {
+			return result.Record().Values[0], nil
+		}
+
+		return nil, result.Err()
+	})
+	
+	if err != nil {
+		return false
+	}
+
+	if doc != nil {
+		return true
+	}
+	return false
 }

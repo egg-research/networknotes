@@ -11,7 +11,6 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/daaku/go.httpgzip"
 	"github.com/golang/gddo/httputil/header"
-	"github.com/fatih/structs"
 												
     "context"                       // https://blog.golang.org/context
 	firebase "firebase.google.com/go"
@@ -19,64 +18,6 @@ import (
 	
 	. "main/db"
 )
-
-func kw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
-	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close()
-	resp, err := addKeywords(session, body)
-	if (err != nil) {
-		return nil, err
-	}
-	return resp, err
-}
-
-func mapKeywords(kws []Keyword) []map[string]interface{} {
-	var result = make([]map[string]interface{}, len(kws))
-
-	for index, item := range kws {
-		result[index] = structs.Map(item)
-	}
-	fmt.Println("kws", result)
-	return result
-}
-
-func addKeywords(session neo4j.Session, body User) (interface{}, error) {
-	resp, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
-		fmt.Println("addKeywords:", body)
-		fmt.Printf("%T\n %T\n %T\n", body.Doc, body.Kws, mapKeywords(body.Kws))
-		// MERGE (k:Keyword {kw:kw.Kw})
-		// MERGE (d:Document {doc: $doc}) 
-		// MERGE (u:User {user: $uid})
-		// WITH u,d,k,kw
-		// MERGE (u)-[:DOCUMENT]->(d)
-		// MERGE (k)-[:DOCUMENT]->(d)
-		// MERGE (u)-[:KEYWORD {kwText:kw.KwText}]->(k)
-		// MERGE (d)-[:KEYWORD {kwText:kw.KwText}]->(k)
-		result, err := transaction.Run(
-			`
-			UNWIND $kws as kw
-			RETURN id(kw)
-			`,
-			map[string]interface{}{
-				"uid":body.Uid,
-				"doc":body.Uid+"$"+body.Doc.DocId,
-				"kws":mapKeywords(body.Kws),
-			})
-		fmt.Println("error", err)
-
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println("Keyword Result", result)
-
-		if result.Next() {
-			return result.Record().Values[0], nil
-		}
-
-		return nil, result.Err()
-	})
-	return resp, err
-}
 
 func clear(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -127,7 +68,7 @@ func requestHandler(driver neo4j.Driver, db Firestore, request string) func(http
 		case "readDocFS":
 			resp, err = ReadDocFS(db, body.Doc.DocId)
 		case "kw":
-			resp, err = kw(driver, db, body)
+			resp, err = WriteKw(driver, db, body)
 		case "clear":
 			resp, err = clear(driver, db, body)
 		default:
