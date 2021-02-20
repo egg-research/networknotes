@@ -1,8 +1,0 @@
-runtime: go111
-service: serviceproxy
-
-handlers:
-  - url: /.*
-    script: auto
-  - url: /_ah/remote_api
-    script: auto
