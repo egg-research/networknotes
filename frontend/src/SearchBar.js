@@ -25,8 +25,9 @@ export default function SearchBar({ documents, keywords }) {
     <AutoComplete
       options={autocompleteOptions}
       dropdownClassName='dropdown-category'
+      style={{ width: 250 }}
     >
-      <Input.Search size='large' placeholder='Search' />
+      <Input.Search placeholder='Search' />
     </AutoComplete>
   );
 }
