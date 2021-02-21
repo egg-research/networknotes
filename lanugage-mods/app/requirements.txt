@@ -1,0 +1,3 @@
+Flask==1.1.2
+openai==0.2.4
+google-cloud-language==2.0.0

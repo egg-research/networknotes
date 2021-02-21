@@ -1,57 +1,91 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 
+import { Empty } from 'antd';
 import { ForceGraph2D } from 'react-force-graph';
 
 const NODE_R = 8;
 
-function Graph({ data, height, width }) {
+function Graph({ data, height, width, setNode }) {
   const [highlights, setHighlight] = useState({
     nodes: new Set(),
     edges: new Set(),
     hoverNode: null,
   });
 
-  const handleNodeHover = (node) => {
-    const newHighlights = {
-      nodes: new Set(),
-      edges: new Set(),
-      hoverNode: null,
-    };
+  const ref = useRef(null);
+  const history = useHistory();
 
-    if (node) {
-      node.neighbors.forEach((neighbor) => newHighlights.nodes.add(neighbor));
-      node.links.forEach((edge) => newHighlights.edges.add(edge));
-      newHighlights.nodes.add(node);
-      newHighlights.hoverNode = node;
+  useEffect(() => {
+    setTimeout(() => {
+      if (ref && ref.current) {
+        ref.current.d3Force('charge').strength(-50);
+      }
+    }, 0);
+  }, []);
+
+  if (data.nodes.length === 0) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Empty style={{ height: 200 }} />
+      </div>
+    );
+  }
+
+  function paintNode(node, color, ctx) {
+    const { id, name, x, y } = node;
+    const fontSize = 8;
+    ctx.font = `${fontSize}px Sans-Serif`;
+    const textWidth = ctx.measureText(name).width + fontSize * 0.5;
+    const bckgDimensions = [textWidth, fontSize].map((n) => n + fontSize * 0.2); // some padding
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillRect(
+      x - bckgDimensions[0] / 2,
+      y - bckgDimensions[1] / 2,
+      ...bckgDimensions
+    );
+
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(name, x, y);
+    node._bckgDimensions = bckgDimensions;
+  }
+
+  function areaPaint(node, color, ctx) {
+    ctx.fillStyle = color;
+    const bckgDimensions = node._bckgDimensions;
+    if (bckgDimensions) {
+      ctx.fillRect(
+        node.x - bckgDimensions[0] / 2,
+        node.y - bckgDimensions[1] / 2,
+        ...bckgDimensions
+      );
     }
-
-    setHighlight(newHighlights);
-  };
-
-  const paintRing = useCallback(
-    (node, ctx) => {
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, NODE_R * 1.4, 0, 2 * Math.PI, false);
-      ctx.fillStyle = node === highlights.hoverNode ? 'red' : 'orange';
-      ctx.fill();
-    },
-    [highlights]
-  );
+  }
 
   return (
     <ForceGraph2D
+      ref={ref}
       graphData={data}
-      nodeRelSize={NODE_R}
       height={height}
       width={width}
-      linkWidth={(link) => (highlights.edges.has(link) ? 5 : 1)}
-      nodeCanvasObjectMode={(node) =>
-        highlights.nodes.has(node) ? 'before' : undefined
-      }
-      nodeCanvasObject={paintRing}
-      onNodeHover={handleNodeHover}
+      nodeLabel={() => undefined}
+      linkLabel={(link) => link.name}
+      nodeCanvasObject={(node, ctx) => paintNode(node, 'red', ctx)}
+      nodePointerAreaPaint={areaPaint}
+      onNodeClick={(node) => history.push(`/document/${node.id}`)}
     />
   );
 }
 
-export default Graph;
+export default React.memo(Graph);

@@ -1,8 +1,23 @@
 .view-switch {
-    z-index: 1000;
-    position: fixed;
+    z-index: 2;
     top: 32px;
     right: 32px;
+    position: fixed;
+}
+
+.elevated {
+    z-index: 1;
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    background-color: transparent;
+}
+
+.settings-card {
+    z-index: 2;
+    position: relative;
+    top: 32px;
+    left: 32px;
 }
 
 .table {
@@ -10,10 +25,6 @@
     padding-right: 32px;
 }
 
-.search-bar {
-    height: 100px;
-    display: flex;
-    justify-content: flex-start;
-    padding-top: 28px;
-    padding-left: 32px;
+.content-container {
+    margin-top: 88px;
 }
