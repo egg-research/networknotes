@@ -2,6 +2,8 @@ import React, { useState, useContext } from 'react';
 
 import { useMeasure, useEffectOnce } from 'react-use';
 import { Spin, Radio, Divider, Input } from 'antd';
+
+import { useHistory } from 'react-router-dom';
 import Graph from './Graph';
 import Layout from './Layout';
 import DocumentTable from './DocumentTable';
@@ -15,6 +17,7 @@ import {
   getKeywordGraph,
   getAllKeywords,
   getAllDocs,
+  updateDoc,
 } from './db';
 import { getText } from './ml';
 
@@ -130,17 +133,23 @@ export default function GraphPage() {
     nodes: [],
     links: [],
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const userId = useContext(UserContext);
+
+  const history = useHistory();
 
   const uploadFileHandler = (e) => {
     console.log(e.target.files[0]);
   };
 
   async function onUpload(e) {
-    console.log(e);
+    setLoading(true);
     const docText = await getText(e);
-    console.log(docText.text);
+    const text = docText.text;
+    const docId = await makeNewDoc(userId, 'File from PDF');
+    await updateDoc(userId, docId, 'File from PDF', text, '');
+    setLoading(false);
+    history.push(`/documents/${docId}`);
   }
 
   const { height, width } = dimensions;
@@ -154,6 +163,7 @@ export default function GraphPage() {
         Select a PDF file
       </InputFile>
       <Search
+        loading={loading}
         className='pdfURL'
         placeholder='Input URL'
         enterButton='Upload'

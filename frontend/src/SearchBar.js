@@ -64,6 +64,7 @@ export default function SearchBar({
   }
 
   const onSearch = (searchText) => {
+    console.log(searchText);
     if (!searchText) {
       setSearchedDocs(initDocs);
       setSearchedKeywords(initKeywords);
@@ -72,11 +73,12 @@ export default function SearchBar({
     }
 
     const newSearchedKeywords = keywords.filter((keyword) =>
-      keyword.name.includes(searchText)
+      keyword.name?.includes(searchText)
     );
 
+    console.log(documents);
     const newSearchedDocs = documents.filter((doc) =>
-      doc.name.includes(searchText)
+      doc.title?.includes(searchText)
     );
 
     setSearchedDocs(newSearchedDocs);

@@ -12,7 +12,7 @@ import {
   INLINE_BUTTONS,
 } from 'medium-draft';
 
-import { convertToRaw } from 'draft-js';
+import { ContentState, EditorState, convertToRaw } from 'draft-js';
 import SearchBar from './SearchBar';
 
 import 'medium-draft/lib/index.css';
@@ -168,10 +168,21 @@ export default function EditorPage() {
     const related_res = await getRelatedKwds(userId, docId);
     setDocument(res.document);
     setKeywords(res.keywords);
-    const initData =
+    let initData =
       res.document.rawText !== ''
         ? createEditorState(res.document.rawText)
         : createEditorState();
+
+    if (res.document.text !== '' && res.document.rawText == '') {
+      initData = EditorState.createWithContent(
+        ContentState.createFromText(res.document.text)
+      );
+
+      const rawText = convertToRaw(initData.getCurrentContent());
+      const text = initData.getCurrentContent().getPlainText();
+      updateDoc(userId, docId, res.document.title, text, rawText);
+    }
+
     setData(initData);
     setInitialLoading(false);
 
