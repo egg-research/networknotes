@@ -32,9 +32,14 @@ export function processGraph(graph) {
     node.links = [];
   });
 
+  // console.log('graph');
+  // console.log(graph);
+  // console.log('nodeMap');
+  // console.log(nodeMap);
   graph.links.forEach((link) => {
-    const a = nodeMap[link.source];
-    const b = nodeMap[link.target];
+    const a = nodeMap[link.source.id != null ? link.source.id : link.source];
+    const b = nodeMap[link.target.id != null ? link.target.id : link.target];
+    // console.log(a, b);
 
     a.neighbors.push(b);
     b.neighbors.push(a);
@@ -77,9 +82,8 @@ function applyNodeFilter(graph, nodeFilter) {
   newGraph.nodes = nodesAndNeighbors;
   newGraph.links = links;
 
+  console.log('nodeFilter');
   const lol = processGraph(newGraph);
-  console.log('after process');
-  console.log(lol);
 
   return lol;
 }
@@ -108,6 +112,7 @@ function applyLinkFilter(graph, linkFilter) {
   newGraph.nodes = Array.from(nodeSet);
   newGraph.links = links;
 
+  console.log('linkFilter');
   return processGraph(newGraph);
 }
 
@@ -123,6 +128,7 @@ export function applyGraphFilter(graph, nodeFilter, linkFilter) {
     return graph;
   }
 
+  Object.assign(newGraph, graph);
   newGraph = applyNodeFilter(graph, nodeFilter);
   newGraph = applyLinkFilter(newGraph, linkFilter);
 
