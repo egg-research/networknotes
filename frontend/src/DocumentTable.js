@@ -1,21 +1,19 @@
 import React from 'react';
 
 import { Table, Tag } from 'antd';
-
 import { useHistory } from 'react-router-dom';
 
-
 const columns = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+  },
   {
     title: 'Name',
     dataIndex: 'name',
     key: 'name',
   },
-  // {
-  //   title: 'Last Accessed',
-  //   dataIndex: 'lastAccessed',
-  //   key: 'lastAccessed',
-  // },
   {
     title: 'Keywords',
     dataIndex: 'keywords',
@@ -32,8 +30,12 @@ const columns = [
 
 export default function DocumentTable({ data, className }) {
   const history = useHistory();
-  // history.push(`/document/${r.id}`)
-  return <Table columns={columns} dataSource={data} className={className} onRow={(r) => ({
-    onClick: () => console.log(r) 
-  })}/>;
+  return (
+    <Table
+      columns={columns}
+      dataSource={data}
+      className={className}
+      onRow={(r) => ({ onClick: () => history.push(`/document/${r.id}`) })}
+    />
+  );
 }

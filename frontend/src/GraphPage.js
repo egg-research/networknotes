@@ -76,40 +76,41 @@ function ViewSwitch({ className, setView }) {
 }
 
 function TableContainer({ tableData, className }) {
-  console.log("TABLE DATA", tableData)
- 
-  const docMap = new Map()
-  const docKwMap = new Map()
-  const links = tableData.links
-  const nodes = tableData.nodes
+  console.log('TABLE DATA', tableData);
+
+  const docMap = new Map();
+  const docKwMap = new Map();
+  const links = tableData.links;
+  const nodes = tableData.nodes;
   links.forEach((link) => {
-    const source = link.source
-    const target = link.target
+    const source = link.source.id != null ? link.source.id : link.source;
+    const target = link.target.id != null ? link.target.id : link.target;
     if (!docKwMap.has(source)) {
-      docKwMap[source] = new Set()
+      docKwMap[source] = new Set();
     }
     if (!docKwMap.has(target)) {
-      docKwMap[target] = new Set()
+      docKwMap[target] = new Set();
     }
-    
-    docKwMap[source].add(link.name)
-    docKwMap[target].add(link.name)
-  })
+
+    docKwMap[source].add(link.name);
+    docKwMap[target].add(link.name);
+  });
+
+  console.log(docKwMap);
 
   nodes.forEach((node) => {
-    docMap[node.id] = node.name
-  })
+    docMap[node.id] = node.name;
+  });
 
-  const result = []
-  docMap.forEach(function (name, id) {
-    console.log(name, id)
+  const result = [];
+  nodes.forEach((node) => {
     result.push({
-      "name": docMap[id],
-      "id": id,
-      "keywords": Array.from(docKwMap[id])
-    })
-  })
-  console.log("result", result)
+      name: docMap[node.id],
+      id: node.id,
+      keywords: docKwMap[node.id] == null ? [] : Array.from(docKwMap[node.id]),
+    });
+  });
+  console.log('result', result);
   return (
     <div className={className}>
       <DocumentTable data={result} className='table' />
@@ -217,10 +218,7 @@ export default function GraphPage() {
       {view === 'graph' ? (
         <Graph data={graphData} height={height} width={width} />
       ) : (
-        <TableContainer
-          className='content-container'
-          tableData={rawDocGraph}
-        />
+        <TableContainer className='content-container' tableData={graphData} />
       )}
     </Layout>
   );
