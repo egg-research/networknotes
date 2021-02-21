@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
 import { Button, Space, Typography, Divider, Tag } from 'antd';
 import { PlusOutlined, FileOutlined } from '@ant-design/icons';
+import { useEffectOnce } from 'react-use';
 
 import {
   Editor,
@@ -18,6 +19,9 @@ import './EditorPage.css';
 import { HeavyText } from './utils/CustomText';
 import Layout from './Layout';
 import Bread from './Bread';
+
+import UserContext from './context';
+import { readDoc } from './db';
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -112,9 +116,22 @@ const KEYWORDS = [
 
 export default function EditorPage() {
   const [data, setData] = useState(createEditorState());
-  const [keywords, setKeywords] = useState(KEYWORDS);
+  const [keywords, setKeywords] = useState([]);
+  const [document, setDocument] = useState(null);
   const ref = useRef(null);
   const { id } = useParams();
+  const docId = parseInt(id, 10);
+  const userId = useContext(UserContext);
+
+  useEffectOnce(async () => {
+    const res = await readDoc(userId, docId);
+    setDocument(res.document);
+    setKeywords(res.keywords);
+    const initData = res.document.rawText
+      ? createEditorState(res.document.rawText)
+      : createEditorState();
+    setData(initData);
+  });
 
   const onChange = (editorState) => {
     setData(editorState);
@@ -127,7 +144,7 @@ export default function EditorPage() {
     { id: 3, name: 'LinkedList' },
   ];
 
-  const document = {
+  const d = {
     title: 'Introduction to Machine Learning',
     keywords,
   };
@@ -149,7 +166,7 @@ export default function EditorPage() {
 
   const Side = (
     <SideDisplay
-      document={document}
+      document={d}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
       addKeyword={addKeyword}
