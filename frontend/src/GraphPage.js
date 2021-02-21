@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import { useMeasure, useEffectOnce } from 'react-use';
-import { Radio, Divider, Input } from 'antd';
+import { Spin, Radio, Divider, Input } from 'antd';
 import Graph from './Graph';
 import Layout from './Layout';
 import DocumentTable from './DocumentTable';
@@ -130,6 +130,7 @@ export default function GraphPage() {
     nodes: [],
     links: [],
   });
+  const [loading, setLoading] = useState(true);
   const userId = useContext(UserContext);
 
   const uploadFileHandler = (e) => {
@@ -154,7 +155,7 @@ export default function GraphPage() {
       </InputFile>
       <Search
         className='pdfURL'
-        placeholder='input URL'
+        placeholder='Input URL'
         enterButton='Upload'
         size='small'
         onSearch={onUpload}
@@ -175,6 +176,8 @@ export default function GraphPage() {
       setRawKeywordGraph(values[1]);
       setAllKeywords(values[2]);
       setAllDocuments(values[3]);
+      // console.log('hi');
+      // setLoading(false);
     });
   });
 
@@ -216,7 +219,17 @@ export default function GraphPage() {
         )}
       </div>
       {view === 'graph' ? (
-        <Graph data={graphData} height={height} width={width} />
+        <Graph
+          data={graphData}
+          height={height}
+          width={width}
+          load={
+            keywordFilter.size +
+              documentFilter.size +
+              graphData.nodes.length ===
+            0
+          }
+        />
       ) : (
         <TableContainer className='content-container' tableData={graphData} />
       )}

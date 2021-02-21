@@ -1,10 +1,9 @@
 import React, { useState, useRef, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { Button, Space, Typography, Divider, Tag, Spin } from 'antd';
+import { Button, Space, Typography, Divider, Tag, Spin, Skeleton } from 'antd';
 import { PlusOutlined, FileOutlined } from '@ant-design/icons';
 import { useEffectOnce } from 'react-use';
-
 
 import {
   Editor,
@@ -24,7 +23,13 @@ import Layout from './Layout';
 import Bread from './Bread';
 
 import UserContext from './context';
-import { readDoc, updateDoc, getAllKeywords, updateDocKeyword, getRelatedKwds} from './db';
+import {
+  readDoc,
+  updateDoc,
+  getAllKeywords,
+  updateDocKeyword,
+  getRelatedKwds,
+} from './db';
 
 const { Text, Paragraph, Title } = Typography;
 const { CheckableTag } = Tag;
@@ -35,6 +40,7 @@ function EditorBlock({ ref, data, onChange }) {
       ref={ref}
       editorState={data}
       onChange={onChange}
+      sideButtons={[]}
       blockButtons={BLOCK_BUTTONS}
       inlineButtons={INLINE_BUTTONS}
     />
@@ -48,6 +54,7 @@ function SideDisplay({
   createKeyword,
   loading,
   loadingSuggested,
+  initialLoading,
   addKeyword,
   removeKeyword,
 }) {
@@ -57,17 +64,23 @@ function SideDisplay({
   return (
     <>
       <Bread>
-        <FileOutlined style={{ fontSize: "24px" }}/>
+        <FileOutlined style={{ fontSize: '24px' }} />
       </Bread>
       <Divider dashed />
-      <Typography>
-        <Title level={3}>{title}</Title>
-      </Typography>
-      <Typography>
-        <Paragraph>
-          <HeavyText>Last Edited:</HeavyText> <Text> Apr 25, 2021</Text>
-        </Paragraph>
-      </Typography>
+      {!initialLoading ? (
+        <>
+          <Typography>
+            <Title level={3}>{title}</Title>
+          </Typography>
+          <Typography>
+            <Paragraph>
+              <HeavyText>Last Edited:</HeavyText> <Text> Apr 25, 2021</Text>
+            </Paragraph>
+          </Typography>
+        </>
+      ) : (
+        <Skeleton size='small' active />
+      )}
       <Divider dashed />
       <div>
         <Typography>
@@ -142,8 +155,9 @@ export default function EditorPage() {
   const [document, setDocument] = useState(null);
   const [suggested, setSuggested] = useState([]);
   const [allKeywords, setAllKeywords] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingSuggested, setLoadingSuggested] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingSuggested, setLoadingSuggested] = useState(true);
   const ref = useRef(null);
   const { id } = useParams();
   const docId = parseInt(id, 10);
@@ -154,18 +168,20 @@ export default function EditorPage() {
     const related_res = await getRelatedKwds(userId, docId);
     setDocument(res.document);
     setKeywords(res.keywords);
-    let suggested_kws = related_res.generated.concat(related_res.kws);
-    setSuggested(suggested_kws);
     const initData =
       res.document.rawText !== ''
         ? createEditorState(res.document.rawText)
         : createEditorState();
     setData(initData);
-  });
+    setInitialLoading(false);
 
-  useEffectOnce(async () => {
-    const res = await getAllKeywords(userId);
-    setAllKeywords(res);
+    const kws = await getAllKeywords(userId);
+    setAllKeywords(kws);
+    setLoading(false);
+
+    let suggested_kws = related_res.generated.concat(related_res.kws);
+    setSuggested(suggested_kws);
+    setLoadingSuggested(false);
   });
 
   const onChange = (editorState) => {
@@ -198,7 +214,6 @@ export default function EditorPage() {
     setKeywords(newKeywords);
   };
 
-
   const createKeyword = async (kw) => {
     setLoading(true);
     const newKeywords = Array.from(keywords.concat([kw]));
@@ -219,12 +234,13 @@ export default function EditorPage() {
 
   const Side = (
     <SideDisplay
-      document={{ title: document ? document.title : '', keywords, suggested}}
+      document={{ title: document ? document.title : '', keywords, suggested }}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
       addKeyword={addKeyword}
       createKeyword={createKeyword}
       addSuggestedKeywords={addSuggested}
+      initialLoading={initialLoading}
       loading={loading}
       loadingSuggested={loadingSuggested}
     />
@@ -232,7 +248,11 @@ export default function EditorPage() {
 
   return (
     <Layout Sidebar={Side}>
-      <EditorBlock ref={ref} data={data} onChange={onChange} />
+      {!initialLoading ? (
+        <EditorBlock ref={ref} data={data} onChange={onChange} />
+      ) : (
+        <Skeleton paragraph={{ rows: 5 }} />
+      )}
     </Layout>
   );
 }

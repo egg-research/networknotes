@@ -1,12 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { Empty } from 'antd';
+import { Empty, Spin } from 'antd';
 import { ForceGraph2D } from 'react-force-graph';
 
 const NODE_R = 8;
 
-function Graph({ data, height, width, setNode }) {
+function Graph({ data, height, width, setNode, load }) {
   const [highlights, setHighlight] = useState({
     nodes: new Set(),
     edges: new Set(),
@@ -23,6 +23,22 @@ function Graph({ data, height, width, setNode }) {
       }
     }, 0);
   }, []);
+
+  if (load) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Spin style={{ height: 200 }} size='large' />
+      </div>
+    );
+  }
 
   if (data.nodes.length === 0) {
     return (

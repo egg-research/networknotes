@@ -1,5 +1,5 @@
 const baseUrl = 'http://networknotes2.wl.r.appspot.com';
-const userId = 32;
+const userId = 40;
 
 // return as int
 export async function getUserId(username) {
@@ -199,13 +199,12 @@ export async function updateDocKeyword(uid, docId, keywords) {
   return res.json();
 }
 
-
 export async function getRelatedKwds(uid, docId) {
   const body = JSON.stringify({
     Uid: uid,
     Doc: {
       DocId: docId,
-    }
+    },
   });
 
   const res = await fetch(`${baseUrl}/related`, {
