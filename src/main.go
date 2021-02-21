@@ -283,6 +283,8 @@ func requestHandler(driver neo4j.Driver, db Firestore, request string) func(http
 			resp, err = GetAllKws(driver, db, body.Uid)
 		case "getAll":
 			resp, err = GetAll(driver, db, body.Uid, req)
+		case "delKw":
+			resp, err = DelKw(driver, db, body)
 		case "related":
 			resp, err = MLRelated(driver, db, body)
 		case "clear":
@@ -346,6 +348,7 @@ func main() {
 	serveMux.HandleFunc("/getAllKws", requestHandler(driver, db, "getAllKws"))
 	serveMux.HandleFunc("/getAll", requestHandler(driver, db, "getAll"))
 	serveMux.HandleFunc("/writeKw", requestHandler(driver, db, "writeKw"))
+	serveMux.HandleFunc("/delKw", requestHandler(driver, db, "delKw"))
 
 	serveMux.HandleFunc("/related", requestHandler(driver, db, "related"))
 
