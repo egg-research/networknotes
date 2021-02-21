@@ -18,8 +18,7 @@ export default function SettingsCard({
   removeKeyword,
   setOpacity,
 }) {
-  console.log(documents);
-  console.log(keywords);
+  const { Text } = Typography;
 
   const content = (
     <div style={{ padding: 16 }}>
@@ -34,21 +33,29 @@ export default function SettingsCard({
         <HeavyText>Documents</HeavyText>
       </div>
       <div className='row'>
-        {Array.from(documentFilter).map((x) => (
-          <Tag closable key={x} onClose={() => removeDocument(x)}>
-            {x}
-          </Tag>
-        ))}
+        {documentFilter.size ? (
+          Array.from(documentFilter).map((x) => (
+            <Tag closable key={x} onClose={() => removeDocument(x)}>
+              {x}
+            </Tag>
+          ))
+        ) : (
+          <Text type='secondary'>Showing all documents</Text>
+        )}
       </div>
       <div className='row'>
         <HeavyText>Keywords</HeavyText>
       </div>
       <div className='row'>
-        {Array.from(keywordFilter).map((x) => (
-          <Tag closable key={x} onClose={() => removeKeyword(x)}>
-            {x}
-          </Tag>
-        ))}
+        {keywordFilter.size ? (
+          Array.from(keywordFilter).map((x) => (
+            <Tag closable key={x} onClose={() => removeKeyword(x)}>
+              {x}
+            </Tag>
+          ))
+        ) : (
+          <Text type='secondary'>Showing all keywords</Text>
+        )}
       </div>
       <div className='row'>
         <HeavyText>Weight</HeavyText>
