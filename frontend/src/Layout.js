@@ -7,6 +7,7 @@ import './Layout.css';
 export default function Layout({
   Sidebar,
   contentRef,
+  sidebarRef,
   contentPadding = true,
   children,
 }) {
@@ -15,8 +16,10 @@ export default function Layout({
     : 'content';
 
   return (
-    <Row className='root'>
-      <Col className='sidebar'>{Sidebar}</Col>
+    <Row className='root' wrap={false}>
+      <Col ref={sidebarRef} className='sidebar'>
+        {Sidebar}
+      </Col>
       <Col className={contentClassName} ref={contentRef}>
         {children}
       </Col>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 import { ForceGraph2D } from 'react-force-graph';
 
@@ -12,11 +12,15 @@ function Graph({ data, height, width }) {
   });
 
   const ref = useRef(null);
-  setTimeout(() => {
-    if (ref && ref.current) {
-      ref.current.d3Force('charge').strength(-50);
-    }
-  }, 0);
+  useEffect(() => {
+    setTimeout(() => {
+      if (ref && ref.current) {
+        ref.current.d3Force('charge').strength(-50);
+      }
+    }, 0);
+  }, []);
+
+  console.log('rendering graph');
 
   const handleNodeHover = (node) => {
     const newHighlights = {
@@ -24,8 +28,6 @@ function Graph({ data, height, width }) {
       edges: new Set(),
       hoverNode: null,
     };
-
-    console.log(node);
 
     if (node) {
       node.neighbors.forEach((neighbor) => newHighlights.nodes.add(neighbor));
@@ -76,6 +78,8 @@ function Graph({ data, height, width }) {
       graphData={data}
       height={height}
       width={width}
+      nodeLabel={() => undefined}
+      linkLabel={(link) => link.name}
       nodeCanvasObject={(node, ctx) => paintNode(node, 'red', ctx)}
       nodePointerAreaPaint={areaPaint}
       onNodeHover={handleNodeHover}
@@ -83,4 +87,4 @@ function Graph({ data, height, width }) {
   );
 }
 
-export default Graph;
+export default React.memo(Graph);
