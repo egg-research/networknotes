@@ -47,11 +47,11 @@ def serve_app(gpt):
         if 'header_req' in request.json.keys():
             if request.json['header_req'] == header_req:
                 prompt = request.json["prompt"]
-                response = 'GPT3 response to: ' + prompt #gpt.submit_request(prompt) #
+                response = 'a, nice, list, of, related, keywords' # gpt.submit_request(prompt) 
                 offset = 0
                 if not gpt.append_output_prefix_to_query:
                     offset = len(gpt.output_prefix)
-                return {'text': response} #response['choices'][0]['text'][offset:]}
+                return {'text': response} # response['choices'][0]['text'][offset:]} #
         return 'Unable to reach endpoint'
     
     @app.route("/keywords", methods=["GET", "POST"])
@@ -60,7 +60,7 @@ def serve_app(gpt):
         if 'header_req' in request.json.keys():
             if request.json['header_req'] == header_req:
                 prompt = request.json["prompt"]
-                response = 'GCP response to: ' + prompt #str(top_keywords(prompt))
+                response = str(['tomato', 'pear', 'cherry', 'ice cream', 'sweet', 'icing', 'sundae', 'sprinkles', 'brownie', 'matcha'])# str(top_keywords(prompt))
                 return {'text': response}
         return 'Unable to reach endpoint'
 
