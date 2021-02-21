@@ -1,11 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 
 import { Empty } from 'antd';
 import { ForceGraph2D } from 'react-force-graph';
 
 const NODE_R = 8;
 
-function Graph({ data, height, width }) {
+function Graph({ data, height, width, setNode }) {
   const [highlights, setHighlight] = useState({
     nodes: new Set(),
     edges: new Set(),
@@ -13,6 +14,7 @@ function Graph({ data, height, width }) {
   });
 
   const ref = useRef(null);
+  const history = useHistory();
   useEffect(() => {
     setTimeout(() => {
       if (ref && ref.current) {
@@ -36,23 +38,6 @@ function Graph({ data, height, width }) {
       </div>
     );
   }
-
-  const handleNodeHover = (node) => {
-    const newHighlights = {
-      nodes: new Set(),
-      edges: new Set(),
-      hoverNode: null,
-    };
-
-    if (node) {
-      node.neighbors.forEach((neighbor) => newHighlights.nodes.add(neighbor));
-      node.links.forEach((edge) => newHighlights.edges.add(edge));
-      newHighlights.nodes.add(node);
-      newHighlights.hoverNode = node;
-    }
-
-    setHighlight(newHighlights);
-  };
 
   function paintNode(node, color, ctx) {
     const { id, name, x, y } = node;
@@ -97,7 +82,7 @@ function Graph({ data, height, width }) {
       linkLabel={(link) => link.name}
       nodeCanvasObject={(node, ctx) => paintNode(node, 'red', ctx)}
       nodePointerAreaPaint={areaPaint}
-      onNodeHover={handleNodeHover}
+      onNodeClick={(node) => history.push(`/document/${node.id}`)}
     />
   );
 }

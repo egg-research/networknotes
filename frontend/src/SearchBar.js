@@ -10,17 +10,6 @@ export default function SearchBar({
   selectKeyword,
   placeholder = 'Search',
 }) {
-  // const defaultLen = 3;
-  // const initDocs = documents.slice(
-  //   0,
-  //   documents.length > defaultLen ? defaultLen : documents.length
-  // );
-
-  // const initKeywords = keywords.slice(
-  //   0,
-  //   keywords.length > defaultLen ? defaultLen : keywords.length
-  // );
-
   const initDocs = documents;
   const initKeywords = keywords;
 
@@ -29,35 +18,30 @@ export default function SearchBar({
   const [value, setValue] = useState('');
 
   useEffect(() => {
-    // const d = documents.slice(
-    //   0,
-    //   documents.length > defaultLen ? defaultLen : documents.length
-    // );
-
-    // const k = keywords.slice(
-    //   0,
-    //   keywords.length > defaultLen ? defaultLen : keywords.length
-    // );
     setSearchedDocs(documents);
     setSearchedKeywords(keywords);
     setValue('');
   }, [document, keywords]);
 
+  console.log(searchedDocs, searchedKeywords);
+  console.log();
   const autocompleteOptions = [
     {
       label: <span>Documents</span>,
       options: searchedDocs.map((document) => ({
-        value: document,
-        label: <div>{document}</div>,
+        data: document,
+        value: document.name,
+        label: <div>{document.name}</div>,
         type: 'document',
       })),
     },
     {
       label: <span>Keywords</span>,
       options: searchedKeywords.map((keyword) => ({
-        value: keyword,
-        label: <Tag>{keyword}</Tag>,
+        value: keyword.name,
+        label: <Tag>{keyword.name}</Tag>,
         type: 'keyword',
+        data: keyword,
       })),
     },
   ];
@@ -71,10 +55,12 @@ export default function SearchBar({
     }
 
     const newSearchedKeywords = keywords.filter((keyword) =>
-      keyword.includes(searchText)
+      keyword.name.includes(searchText)
     );
 
-    const newSearchedDocs = documents.filter((doc) => doc.includes(searchText));
+    const newSearchedDocs = documents.filter((doc) =>
+      doc.name.includes(searchText)
+    );
 
     setSearchedDocs(newSearchedDocs);
     setSearchedKeywords(newSearchedKeywords);
@@ -83,9 +69,9 @@ export default function SearchBar({
 
   const onSelect = (_, instance) => {
     if (instance.type === 'document' && selectDocument) {
-      selectDocument(instance.value);
+      selectDocument(instance.data);
     } else if (instance.type === 'keyword' && selectKeyword) {
-      selectKeyword(instance.value);
+      selectKeyword(instance.data);
     }
     setValue('');
   };

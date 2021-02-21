@@ -55,7 +55,8 @@ function applyNodeFilter(graph, nodeFilter) {
   }
 
   // get og
-  const nodes = graph.nodes.filter((node) => nodeFilter.has(node.id));
+  const nodeFilterIdSet = new Set(Array.from(nodeFilter).map((x) => x.id));
+  const nodes = graph.nodes.filter((node) => nodeFilterIdSet.has(node.id));
 
   const neighbors = graph.nodes.filter((currNode) => {
     for (const node of nodes) {
@@ -96,7 +97,8 @@ function applyLinkFilter(graph, linkFilter) {
     nodeMap[node.id] = node;
   }
 
-  const links = graph.links.filter((link) => linkFilter.has(link.id));
+  const linkFilterIdSet = new Set(Array.from(linkFilter).map((x) => x.id));
+  const links = graph.links.filter((link) => linkFilterIdSet.has(link.id));
   const nodeSet = new Set();
   for (const link of links) {
     nodeSet.add(nodeMap[link.source]);

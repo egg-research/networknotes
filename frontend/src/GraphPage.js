@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
 import { useMeasure } from 'react-use';
-import { Radio } from 'antd';
+import { Radio, Divider } from 'antd';
 import Graph from './Graph';
 import Layout from './Layout';
 import DocumentTable from './DocumentTable';
 import SearchBar from './SearchBar';
 import SettingsCard from './SettingsCard';
+import Bread from './Bread';
 
 import { genRandomTree } from './utils/Data';
 import { applyGraphFilter } from './utils/graph';
@@ -14,26 +15,34 @@ import './GraphPage.css';
 
 const documentData = [
   {
-    key: 1,
+    id: 0,
+    key: 0,
     name: 'Intro to Machine Learning',
     lastAccessed: '8:35pm Apr 20, 2020',
     keywords: ['CNN', 'RNN'],
   },
   {
-    key: 2,
+    id: 1,
+    key: 1,
     name: 'Computer Vision',
     lastAccessed: '8:35pm Apr 20, 2020',
     keywords: ['CNN', 'RNN'],
   },
   {
-    key: 3,
+    id: 2,
+    key: 2,
     name: 'Advanced Data Structures',
     lastAccessed: '8:35pm Apr 20, 2020',
     keywords: ['Trie', 'Skip List'],
   },
 ];
 
-const keywords = ['CNN', 'RNN', 'Trie', 'Skip List'];
+const keywords = [
+  { id: 0, name: 'CNN' },
+  { id: 1, name: 'RNN' },
+  { id: 2, name: 'Trie' },
+  { id: 3, name: 'Skip List' },
+];
 
 function ViewSwitch({ className, setView }) {
   const onChange = (e) => {
@@ -69,15 +78,15 @@ export default function GraphPage() {
   const { height, width } = dimensions;
 
   const Sidebar = () => (
-    <SearchBar
-      documents={documentData.map((document) => document.name)}
-      keywords={keywords}
-    />
+    <>
+      <Bread />
+      <Divider dashed />
+      <SearchBar documents={documentData} keywords={keywords} />
+    </>
   );
 
   const data = genRandomTree(3);
   const graphData = applyGraphFilter(data, documentFilter, keywordFilter);
-  console.log(graphData);
 
   return (
     <Layout Sidebar={<Sidebar />} contentRef={ref} contentPadding={false}>
@@ -86,10 +95,10 @@ export default function GraphPage() {
         {view === 'graph' && (
           <SettingsCard
             className='settings-card'
-            documents={documentData
-              .filter((doc) => !documentFilter.has(doc.name))
-              .map((document) => document.name)}
-            keywords={keywords.filter((kw) => !keywordFilter.has(kw))}
+            documents={documentData.filter(
+              (doc) => !documentFilter.has(doc.id)
+            )}
+            keywords={keywords.filter((kw) => !keywordFilter.has(kw.name))}
             documentFilter={documentFilter}
             keywordFilter={keywordFilter}
             addDocument={(newDoc) => {

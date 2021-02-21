@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 
-import { Typography, Divider, Tag } from 'antd';
+import { useParams, Link } from 'react-router-dom';
+import { Breadcrumb, Typography, Divider, Tag } from 'antd';
+import { HomeOutlined, FileOutlined } from '@ant-design/icons';
 
 import {
   Editor,
@@ -13,6 +15,7 @@ import 'medium-draft/lib/index.css';
 import './EditorPage.css';
 import { HeavyText } from './utils/CustomText';
 import Layout from './Layout';
+import Bread from './Bread';
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -31,6 +34,10 @@ function EditorBlock({ ref, data, onChange }) {
 function SideDisplay() {
   return (
     <>
+      <Bread>
+        <FileOutlined />
+      </Bread>
+      <Divider dashed />
       <Typography>
         <Title level={3}>Introduction to Machine Learning</Title>
       </Typography>
@@ -54,6 +61,7 @@ function SideDisplay() {
 export default function EditorPage() {
   const [data, setData] = useState(createEditorState());
   const ref = useRef(null);
+  const { id } = useParams();
 
   const onChange = (editorState) => {
     // console.log(editorState.getCurrentContent().getPlainText());

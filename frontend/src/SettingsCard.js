@@ -35,8 +35,8 @@ export default function SettingsCard({
       <div className='row'>
         {documentFilter.size ? (
           Array.from(documentFilter).map((x) => (
-            <Tag closable key={x} onClose={() => removeDocument(x)}>
-              {x}
+            <Tag closable key={x.id} onClose={() => removeDocument(x)}>
+              {x.name}
             </Tag>
           ))
         ) : (
@@ -49,8 +49,8 @@ export default function SettingsCard({
       <div className='row'>
         {keywordFilter.size ? (
           Array.from(keywordFilter).map((x) => (
-            <Tag closable key={x} onClose={() => removeKeyword(x)}>
-              {x}
+            <Tag closable key={x.id} onClose={() => removeKeyword(x)}>
+              {x.name}
             </Tag>
           ))
         ) : (
