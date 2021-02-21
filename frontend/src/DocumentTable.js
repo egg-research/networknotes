@@ -2,6 +2,9 @@ import React from 'react';
 
 import { Table, Tag } from 'antd';
 
+import { useHistory } from 'react-router-dom';
+
+
 const columns = [
   {
     title: 'Name',
@@ -28,5 +31,9 @@ const columns = [
 ];
 
 export default function DocumentTable({ data, className }) {
-  return <Table columns={columns} dataSource={data} className={className} />;
+  const history = useHistory();
+  // history.push(`/document/${r.id}`)
+  return <Table columns={columns} dataSource={data} className={className} onRow={(r) => ({
+    onClick: () => console.log(r) 
+  })}/>;
 }

@@ -5,14 +5,14 @@ import { HomeOutlined, FileOutlined } from '@ant-design/icons';
 
 export default function Bread({ children }) {
   return (
-    <Breadcrumb style={{ marginBottom: 8 }}>
+    <Breadcrumb style={{ fontSize:"24px", marginBottom: 8 }}>
       <Breadcrumb.Item>
         <Link to='/'>
-          <HomeOutlined />
-          <span> Home</span>
+          <HomeOutlined style={{fontSize:"24px", paddingLeft:"10px", paddingTop:"10px"}} />
+          <span style={{fontSize:"24px"}}> Home</span>
         </Link>
       </Breadcrumb.Item>
-      {children && <Breadcrumb.Item>{children}</Breadcrumb.Item>}
+      {children && <Breadcrumb.Item style={{ fontSize: "24px" }} >{children}</Breadcrumb.Item>}
     </Breadcrumb>
   );
 }

@@ -54,7 +54,7 @@ function SideDisplay({
   return (
     <>
       <Bread>
-        <FileOutlined />
+        <FileOutlined style={{ fontSize: "24px" }}/>
       </Bread>
       <Divider dashed />
       <Typography>
