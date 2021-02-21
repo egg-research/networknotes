@@ -126,23 +126,17 @@ export default function GraphPage() {
   );
 
   useEffectOnce(async () => {
-    const x = await getDocGraph(userId);
-    setRawDocGraph(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getKeywordGraph(userId);
-    setRawKeywordGraph(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getAllKeywords(userId);
-    setAllKeywords(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getAllDocs(userId);
-    setAllDocuments(x);
+    Promise.all([
+      getDocGraph(userId),
+      getKeywordGraph(userId),
+      getAllKeywords(userId),
+      getAllDocs(userId),
+    ]).then((values) => {
+      setRawDocGraph(values[0]);
+      setRawKeywordGraph(values[1]);
+      setAllKeywords(values[2]);
+      setAllDocuments(values[3]);
+    });
   });
 
   const data = processGraph(rawDocGraph);
@@ -186,7 +180,7 @@ export default function GraphPage() {
       ) : (
         <TableContainer
           className='content-container'
-          tableData={documentData}
+          // tableData={documentData}
         />
       )}
     </Layout>
