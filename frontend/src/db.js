@@ -69,7 +69,7 @@ export async function readDoc(uid, docId) {
 
   const resJSON = await res.json();
   return {
-    keywords: resJSON[0] === null ? [] : resJSON[0],
+    keywords: resJSON[0] === null ? [] : resJSON[0][0],
     document: {
       id: docId,
       title: resJSON[1].docName,
@@ -99,10 +99,36 @@ export async function getAllDocs(uid) {
   return keys.map((x) => {
     const doc = resJSON[x];
     return {
-      id: x,
+      id: parseInt(x, 10),
       title: doc.docName,
       text: doc.docText,
       rawText: doc.rawDocText === null ? '' : doc.rawDocText,
+    };
+  });
+}
+
+export async function getAllKeywords(uid) {
+  const body = JSON.stringify({
+    Uid: uid,
+  });
+
+  const res = await fetch(`${baseUrl}/getAllKws`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+
+  const resJSON = await res.json();
+  const keys = Object.keys(resJSON);
+
+  return keys.map((x) => {
+    const kw = resJSON[x];
+    return {
+      id: parseInt(x, 10),
+      name: kw.kw,
+      text: kw.kwText,
     };
   });
 }
@@ -129,6 +155,25 @@ export async function getKeywordGraph(uid) {
   });
 
   const res = await fetch(`${baseUrl}/getAll?q=kw`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+
+  return res.json();
+}
+
+export async function updateDocKeyword(uid, docId, keywords) {
+  const body = JSON.stringify({
+    Uid: uid,
+    Doc: {
+      DocId: docId,
+    },
+    Kws: keywords.map((x) => ({ Kw: x, KwText: '' })),
+  });
+  const res = await fetch(`${baseUrl}/writeKw`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

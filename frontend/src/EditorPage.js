@@ -11,6 +11,8 @@ import {
   BLOCK_BUTTONS,
   INLINE_BUTTONS,
 } from 'medium-draft';
+
+import { convertToRaw } from 'draft-js';
 import SearchBar from './SearchBar';
 
 import 'medium-draft/lib/index.css';
@@ -21,7 +23,7 @@ import Layout from './Layout';
 import Bread from './Bread';
 
 import UserContext from './context';
-import { readDoc } from './db';
+import { readDoc, updateDoc, getAllKeywords, updateDocKeyword } from './db';
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -81,7 +83,7 @@ function SideDisplay({
           <div style={{ marginBottom: 8 }}>
             <SearchBar
               keywords={allKeywords}
-              selectKeyword={(keyword) => addKeyword(keyword)}
+              selectKeyword={(keyword) => addKeyword(keyword.name)}
             />
           </div>
         )}
@@ -90,10 +92,10 @@ function SideDisplay({
             {keywords.map((keyword) => (
               <Tag
                 closable
-                key={keyword.id}
-                onClose={() => removeKeyword(keyword.id)}
+                key={keyword}
+                onClose={() => removeKeyword(keyword)}
               >
-                {keyword.name}
+                {keyword}
               </Tag>
             ))}
           </div>
@@ -109,15 +111,13 @@ function SideDisplay({
   );
 }
 
-const KEYWORDS = [
-  { id: 0, name: 'CNN' },
-  { id: 1, name: 'RNN' },
-];
+let tick = 0;
 
 export default function EditorPage() {
   const [data, setData] = useState(createEditorState());
   const [keywords, setKeywords] = useState([]);
   const [document, setDocument] = useState(null);
+  const [allKeywords, setAllKeywords] = useState([]);
   const ref = useRef(null);
   const { id } = useParams();
   const docId = parseInt(id, 10);
@@ -133,40 +133,46 @@ export default function EditorPage() {
     setData(initData);
   });
 
+  useEffectOnce(async () => {
+    const res = await getAllKeywords(userId);
+    console.log(res);
+    setAllKeywords(res);
+  });
+
   const onChange = (editorState) => {
+    const rawText = convertToRaw(editorState.getCurrentContent());
+    const text = editorState.getCurrentContent().getPlainText();
+
+    tick += 1;
+    if (tick > 20) {
+      updateDoc(userId, docId, document.title, text, rawText);
+      tick = 0;
+    }
+
     setData(editorState);
-  };
-
-  const allKeywords = [
-    { id: 0, name: 'CNN' },
-    { id: 1, name: 'RNN' },
-    { id: 2, name: 'Trie' },
-    { id: 3, name: 'LinkedList' },
-  ];
-
-  const d = {
-    title: 'Introduction to Machine Learning',
-    keywords,
   };
 
   const addKeyword = (keyword) => {
     for (const kw of keywords) {
-      if (kw.id === keyword.id) {
+      if (kw === keyword) {
         return;
       }
     }
     const newKeywords = Array.from(keywords.concat([keyword]));
+    updateDocKeyword(userId, docId, newKeywords);
+
     setKeywords(newKeywords);
   };
 
-  const removeKeyword = (kwId) => {
-    const newKeywords = Array.from(keywords.filter((y) => y.id !== kwId));
+  const removeKeyword = (kw) => {
+    const newKeywords = Array.from(keywords.filter((y) => y !== kw));
+    updateDocKeyword(userId, docId, newKeywords);
     setKeywords(newKeywords);
   };
 
   const Side = (
     <SideDisplay
-      document={d}
+      document={{ title: document ? document.title : '', keywords }}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
       addKeyword={addKeyword}

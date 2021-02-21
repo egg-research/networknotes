@@ -27,8 +27,8 @@ export default function SearchBar({
     {
       label: <span>Keywords</span>,
       options: searchedKeywords.map((keyword) => ({
-        value: keyword.name,
-        label: <Tag>{keyword.name}</Tag>,
+        value: keyword.id,
+        label: <Tag key={keyword.id}>{keyword.name}</Tag>,
         type: 'keyword',
         data: keyword,
       })),
@@ -40,8 +40,8 @@ export default function SearchBar({
       label: <span>Documents</span>,
       options: searchedDocs.map((document) => ({
         data: document,
-        value: document.name,
-        label: <div>{document.name}</div>,
+        value: document.id,
+        label: <div key={document.id}>{document.title}</div>,
         type: 'document',
       })),
     });

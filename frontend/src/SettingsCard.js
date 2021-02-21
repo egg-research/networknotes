@@ -36,7 +36,7 @@ export default function SettingsCard({
         {documentFilter.size ? (
           Array.from(documentFilter).map((x) => (
             <Tag closable key={x.id} onClose={() => removeDocument(x)}>
-              {x.name}
+              {x.title}
             </Tag>
           ))
         ) : (

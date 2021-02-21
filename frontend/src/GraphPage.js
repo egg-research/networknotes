@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
-import { useMeasure } from 'react-use';
+import { useMeasure, useEffectOnce } from 'react-use';
 import { Radio, Divider } from 'antd';
 import Graph from './Graph';
 import Layout from './Layout';
@@ -8,9 +8,11 @@ import DocumentTable from './DocumentTable';
 import CreateDocumentForm from './CreateDocumentForm';
 import SettingsCard from './SettingsCard';
 import Bread from './Bread';
+import UserContext from './context';
+import { getDocGraph, getKeywordGraph, getAllKeywords, getAllDocs } from './db';
 
 import { genRandomTree } from './utils/Data';
-import { applyGraphFilter } from './utils/graph';
+import { processGraph, applyGraphFilter } from './utils/graph';
 import './GraphPage.css';
 
 const documentData = [
@@ -74,7 +76,16 @@ export default function GraphPage() {
   const [view, setView] = useState('graph');
   const [documentFilter, setDocumentFilter] = useState(new Set());
   const [keywordFilter, setKeywordFilter] = useState(new Set());
+  const [allKeywords, setAllKeywords] = useState([]);
+  const [allDocuments, setAllDocuments] = useState([]);
   const [ref, dimensions] = useMeasure();
+  const [rawDocGraph, setRawDocGraph] = useState({ nodes: [], links: [] });
+  const [rawKeywordGraph, setRawKeywordGraph] = useState({
+    nodes: [],
+    links: [],
+  });
+  const userId = useContext(UserContext);
+
   const { height, width } = dimensions;
 
   const Sidebar = () => (
@@ -85,7 +96,27 @@ export default function GraphPage() {
     </>
   );
 
-  const data = genRandomTree(3);
+  useEffectOnce(async () => {
+    const x = await getDocGraph(userId);
+    setRawDocGraph(x);
+  });
+
+  useEffectOnce(async () => {
+    const x = await getKeywordGraph(userId);
+    setRawKeywordGraph(x);
+  });
+
+  useEffectOnce(async () => {
+    const x = await getAllKeywords(userId);
+    setAllKeywords(x);
+  });
+
+  useEffectOnce(async () => {
+    const x = await getAllDocs(userId);
+    setAllDocuments(x);
+  });
+
+  const data = processGraph(rawDocGraph);
   const graphData = applyGraphFilter(data, documentFilter, keywordFilter);
 
   return (
@@ -95,10 +126,10 @@ export default function GraphPage() {
         {view === 'graph' && (
           <SettingsCard
             className='settings-card'
-            documents={documentData.filter(
+            documents={allDocuments.filter(
               (doc) => !documentFilter.has(doc.id)
             )}
-            keywords={keywords.filter((kw) => !keywordFilter.has(kw.name))}
+            keywords={allKeywords.filter((kw) => !keywordFilter.has(kw.name))}
             documentFilter={documentFilter}
             keywordFilter={keywordFilter}
             addDocument={(newDoc) => {
