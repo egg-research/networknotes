@@ -28,6 +28,10 @@
     "react/jsx-props-no-spreading": "off",
     "react/require-default-props": "off",
     "react/forbid-prop-types": "off",
+    "react/no-find-dom-node": "off",
+    "react/destructuring-assignment": "off",
+    "lines-between-class-members": "off",
+    "no-return-assign": "off",
     "import/no-unresolved": "off",
     "no-console": "off",
     "import/prefer-default-export": "off",
@@ -38,7 +42,14 @@
     "no-unused-expressions": "off",
     "no-restricted-syntax": "off",
     "import/extensions": "off",
+    "prefer-const": "off",
+    "prefer-arrow-callback": "off",
+    "camelcase": "off",
+    "no-plusplus": "off",
+    "eqeqeq": "off",
+    "prefer-template": "off",
     "prefer-destructuring": "off",
-    "prefer-arrow-callback": "off"
+    "no-loop-func": "off"
+
   }
 }

@@ -26,6 +26,7 @@ import UserContext from './context';
 import { readDoc, updateDoc, getAllKeywords, updateDocKeyword } from './db';
 
 const { Text, Paragraph, Title } = Typography;
+const { CheckableTag } = Tag;
 
 function EditorBlock({ ref, data, onChange }) {
   return (
@@ -43,8 +44,10 @@ function SideDisplay({
   document,
   allKeywords,
   suggestedKeywords,
+  addSuggestedKeywords,
   createKeyword,
   loading,
+  loadingSuggested,
   addKeyword,
   removeKeyword,
 }) {
@@ -111,6 +114,20 @@ function SideDisplay({
       <div>
         <Typography>
           <Title level={4}>Suggested Keywords</Title>
+          <Spin spinning={loadingSuggested}>
+            <Space direction='vertical'>
+              <div>
+                {suggestedKeywords.map((keyword) => (
+                  <CheckableTag
+                    key={keyword}
+                    onChange={() => addSuggestedKeywords(keyword)}
+                  >
+                    {keyword}
+                  </CheckableTag>
+                ))}
+              </div>
+            </Space>
+          </Spin>
         </Typography>
       </div>
     </>
@@ -124,7 +141,9 @@ export default function EditorPage() {
   const [keywords, setKeywords] = useState([]);
   const [document, setDocument] = useState(null);
   const [allKeywords, setAllKeywords] = useState([]);
+  const [suggestedKeywords, setSuggestedKeywords] = useState(['Blockchain']);
   const [loading, setLoading] = useState(false);
+  const [loadingSuggested, setLoadingSuggested] = useState(false);
   const ref = useRef(null);
   const { id } = useParams();
   const docId = parseInt(id, 10);
@@ -186,6 +205,14 @@ export default function EditorPage() {
     setLoading(false);
   };
 
+  const addSuggested = async (kw) => {
+    setLoadingSuggested(true);
+    await createKeyword(kw);
+    const newKeywords = Array.from(suggestedKeywords.filter((y) => y !== kw));
+    setSuggestedKeywords(newKeywords);
+    setLoadingSuggested(false);
+  };
+
   const Side = (
     <SideDisplay
       document={{ title: document ? document.title : '', keywords }}
@@ -193,7 +220,10 @@ export default function EditorPage() {
       removeKeyword={removeKeyword}
       addKeyword={addKeyword}
       createKeyword={createKeyword}
+      addSuggestedKeywords={addSuggested}
+      suggestedKeywords={suggestedKeywords}
       loading={loading}
+      loadingSuggested={loadingSuggested}
     />
   );
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import { useMeasure, useEffectOnce } from 'react-use';
-import { Radio, Divider } from 'antd';
+import { Radio, Divider, Input } from 'antd';
 import Graph from './Graph';
 import Layout from './Layout';
 import DocumentTable from './DocumentTable';
@@ -9,11 +9,53 @@ import CreateDocumentForm from './CreateDocumentForm';
 import SettingsCard from './SettingsCard';
 import Bread from './Bread';
 import UserContext from './context';
-import { getDocGraph, getKeywordGraph, getAllKeywords, getAllDocs } from './db';
+import {
+  makeNewDoc,
+  getDocGraph,
+  getKeywordGraph,
+  getAllKeywords,
+  getAllDocs,
+} from './db';
+import { getText } from './ml';
+
+import InputFile from './InputFile';
 
 import { genRandomTree } from './utils/Data';
 import { processGraph, applyGraphFilter } from './utils/graph';
 import './GraphPage.css';
+
+const { Search } = Input;
+
+const documentData = [
+  {
+    id: 0,
+    key: 0,
+    name: 'Intro to Machine Learning',
+    lastAccessed: '8:35pm Apr 20, 2020',
+    keywords: ['CNN', 'RNN'],
+  },
+  {
+    id: 1,
+    key: 1,
+    name: 'Computer Vision',
+    lastAccessed: '8:35pm Apr 20, 2020',
+    keywords: ['CNN', 'RNN'],
+  },
+  {
+    id: 2,
+    key: 2,
+    name: 'Advanced Data Structures',
+    lastAccessed: '8:35pm Apr 20, 2020',
+    keywords: ['Trie', 'Skip List'],
+  },
+];
+
+const keywords = [
+  { id: 0, name: 'CNN' },
+  { id: 1, name: 'RNN' },
+  { id: 2, name: 'Trie' },
+  { id: 3, name: 'Skip List' },
+];
 
 function ViewSwitch({ className, setView }) {
   const onChange = (e) => {
@@ -89,6 +131,16 @@ export default function GraphPage() {
   });
   const userId = useContext(UserContext);
 
+  const uploadFileHandler = (e) => {
+    console.log(e.target.files[0]);
+  };
+
+  async function onUpload(e) {
+    console.log(e);
+    const docText = await getText(e);
+    console.log(docText.text);
+  }
+
   const { height, width } = dimensions;
 
   const Sidebar = () => (
@@ -96,6 +148,16 @@ export default function GraphPage() {
       <Bread />
       <Divider dashed />
       <CreateDocumentForm />
+      <InputFile uploadFileHandler={uploadFileHandler}>
+        Select a PDF file
+      </InputFile>
+      <Search
+        className='pdfURL'
+        placeholder='input URL'
+        enterButton='Upload'
+        size='small'
+        onSearch={onUpload}
+      />
     </>
   );
 
