@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { Breadcrumb, Typography, Divider, Tag } from 'antd';
-import { HomeOutlined, FileOutlined } from '@ant-design/icons';
+import { Button, Space, Typography, Divider, Tag } from 'antd';
+import { PlusOutlined, FileOutlined } from '@ant-design/icons';
 
 import {
   Editor,
@@ -10,6 +10,8 @@ import {
   BLOCK_BUTTONS,
   INLINE_BUTTONS,
 } from 'medium-draft';
+import SearchBar from './SearchBar';
+
 import 'medium-draft/lib/index.css';
 
 import './EditorPage.css';
@@ -31,7 +33,16 @@ function EditorBlock({ ref, data, onChange }) {
   );
 }
 
-function SideDisplay() {
+function SideDisplay({
+  document,
+  allKeywords,
+  suggestedKeywords,
+  addKeyword,
+  removeKeyword,
+}) {
+  const [showSearch, setShowSearch] = useState(false);
+
+  const { title, keywords } = document;
   return (
     <>
       <Bread>
@@ -39,7 +50,7 @@ function SideDisplay() {
       </Bread>
       <Divider dashed />
       <Typography>
-        <Title level={3}>Introduction to Machine Learning</Title>
+        <Title level={3}>{title}</Title>
       </Typography>
       <Typography>
         <Paragraph>
@@ -49,17 +60,59 @@ function SideDisplay() {
       <Divider dashed />
       <div>
         <Typography>
-          <Title level={4}>Keywords</Title>
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <Title level={4} style={{ marginRight: 8 }}>
+              Keywords
+            </Title>
+            <Button
+              icon={<PlusOutlined />}
+              size='small'
+              shape='circle'
+              type='dashed'
+              onClick={() => setShowSearch(!showSearch)}
+            />
+          </div>
         </Typography>
-        <Tag>CNN</Tag>
-        <Tag>RNN</Tag>
+        {showSearch && (
+          <div style={{ marginBottom: 8 }}>
+            <SearchBar
+              keywords={allKeywords}
+              selectKeyword={(keyword) => addKeyword(keyword)}
+            />
+          </div>
+        )}
+        <Space direction='vertical'>
+          <div>
+            {keywords.map((keyword) => (
+              <Tag
+                closable
+                key={keyword.id}
+                onClose={() => removeKeyword(keyword.id)}
+              >
+                {keyword.name}
+              </Tag>
+            ))}
+          </div>
+        </Space>
+      </div>
+      <Divider dashed />
+      <div>
+        <Typography>
+          <Title level={4}>Suggested Keywords</Title>
+        </Typography>
       </div>
     </>
   );
 }
 
+const KEYWORDS = [
+  { id: 0, name: 'CNN' },
+  { id: 1, name: 'RNN' },
+];
+
 export default function EditorPage() {
   const [data, setData] = useState(createEditorState());
+  const [keywords, setKeywords] = useState(KEYWORDS);
   const ref = useRef(null);
   const { id } = useParams();
 
@@ -68,8 +121,43 @@ export default function EditorPage() {
     setData(editorState);
   };
 
+  const allKeywords = [
+    { id: 0, name: 'CNN' },
+    { id: 1, name: 'RNN' },
+    { id: 2, name: 'Trie' },
+    { id: 3, name: 'LinkedList' },
+  ];
+
+  const document = {
+    title: 'Introduction to Machine Learning',
+    keywords,
+  };
+
+  const addKeyword = (keyword) => {
+    for (const kw in keywords) {
+      if (kw.id === keyword.id) {
+        return;
+      }
+    }
+    console.log(Array.from(keywords + [keyword]));
+    setKeywords(Array.from(keywords + [keyword]));
+  };
+
+  const removeKeyword = (kwId) => {
+    setKeywords(Array.from(keywords.filter((y) => y.id !== kwId)));
+  };
+
+  const Side = (
+    <SideDisplay
+      document={document}
+      allKeywords={allKeywords}
+      removeKeyword={removeKeyword}
+      addKeyword={addKeyword}
+    />
+  );
+
   return (
-    <Layout Sidebar={<SideDisplay />}>
+    <Layout Sidebar={Side}>
       <EditorBlock ref={ref} data={data} onChange={onChange} />
     </Layout>
   );

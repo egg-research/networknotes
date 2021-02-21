@@ -23,18 +23,7 @@ export default function SearchBar({
     setValue('');
   }, [document, keywords]);
 
-  console.log(searchedDocs, searchedKeywords);
-  console.log();
   const autocompleteOptions = [
-    {
-      label: <span>Documents</span>,
-      options: searchedDocs.map((document) => ({
-        data: document,
-        value: document.name,
-        label: <div>{document.name}</div>,
-        type: 'document',
-      })),
-    },
     {
       label: <span>Keywords</span>,
       options: searchedKeywords.map((keyword) => ({
@@ -45,6 +34,18 @@ export default function SearchBar({
       })),
     },
   ];
+
+  if (documents.length !== 0) {
+    autocompleteOptions.unshift({
+      label: <span>Documents</span>,
+      options: searchedDocs.map((document) => ({
+        data: document,
+        value: document.name,
+        label: <div>{document.name}</div>,
+        type: 'document',
+      })),
+    });
+  }
 
   const onSearch = (searchText) => {
     if (!searchText) {

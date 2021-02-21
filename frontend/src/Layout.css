@@ -1,5 +1,6 @@
 .sidebar {
     background-color: azure;
+    box-shadow: 1px 1px 10px rgba(0,0,0,0.3);
     max-width: 280px;
     min-width: 180px;
     padding-top: 24px;
