@@ -92,14 +92,14 @@ func Login(driver neo4j.Driver,  db Firestore, body User) (interface{}, error) {
 	return uid, err
 }
 
-func CheckUid(driver neo4j.Driver, uid string) (bool) {
+func CheckUid(driver neo4j.Driver, uid int) (bool) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode:neo4j.AccessModeRead})
 	defer session.Close()
 
 	userId, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			`
-			MATCH (u:User) WHERE id(u) == $uid 
+			MATCH (u:User) WHERE id(u) = $uid 
 			RETURN id(u)
 			`,
 			map[string]interface{}{"uid":uid})
@@ -127,4 +127,16 @@ func CheckUid(driver neo4j.Driver, uid string) (bool) {
 
 func toString(i int64) (string) {
 	return strconv.FormatInt(i, 10)
+}
+
+func ToString(i interface{}) (string) {
+	return i.(string)
+}
+
+func toInt(i interface{}) (int) {
+	return int(i.(int64))
+}
+
+func ToInt(i interface{}) (int) {
+	return int(i.(int64))
 }

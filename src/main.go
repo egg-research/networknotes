@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"io"
+	"io/ioutil"
 	"strings"
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
@@ -14,10 +15,213 @@ import (
 												
     "context"                       // https://blog.golang.org/context
 	firebase "firebase.google.com/go"
-    "google.golang.org/api/option"
+    // "google.golang.org/api/option"
 	
 	. "main/db"
+	. "main/ml"
 )
+
+func Max(x, y int) int {
+    if x < y {
+        return y
+    }
+    return x
+}
+
+func GetAll(driver neo4j.Driver, db Firestore, uid int, req *http.Request) (interface{}, error) {
+	if !CheckUid(driver, uid) {
+		return nil, errors.New("User does not exist")
+	}
+
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode:neo4j.AccessModeRead})
+	defer session.Close()
+
+	nodes := make([]interface{}, 0)
+	linkMap := make(map[int]string, 0)
+	nodeIds := make(map[int]int, 0)
+	links := make([]interface{}, 0)
+
+	kwMap := make(map[int]string, 0)
+	max := 1
+
+	_, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		var query string
+		
+		docquery := 
+		`
+		MATCH (u:User) WHERE id(u) = $uid
+		MATCH (d:Document) <-- (u)  
+		OPTIONAL MATCH (d) -[r:KEYWORD]-> (k:Keyword) <-[s:KEYWORD]- (e:Document) <-- (u) WHERE id(d) < id(e)
+		RETURN id(d), id(e), id(k), k.kw
+		`
+
+		kwquery := 
+		`
+		MATCH (u:User) WHERE id(u) = $uid
+		MATCH (k:Keyword) <-- (u)  
+		OPTIONAL MATCH (k) <-[r:KEYWORD]- (d:Document) -[s:KEYWORD]-> (l:Keyword) <-- (u) WHERE id(k) < id(l)
+		RETURN id(k), id(l), id(d), k.kw, l.kw
+		`
+
+		if req.URL.Query()["q"][0] == "kw" {
+			query = kwquery
+		} else if req.URL.Query()["q"][0] == "doc" {
+			query = docquery
+		} else {
+			return nil, errors.New("query param string not recognized")
+		}
+
+		result, err := transaction.Run(
+			query,
+			map[string]interface{}{"uid":uid})
+
+			if err != nil {
+				return nil, err
+			}
+
+			collection, err := result.Collect()
+			if err != nil {
+				return nil, err
+			}
+
+			for _, record := range collection {
+				if (req.URL.Query()["q"][0] == "doc") {
+					fmt.Println(record.Values)
+					_,ok := nodeIds[ToInt(record.Values[0])]
+					if !ok {
+						nodeIds[ToInt(record.Values[0])] = 0
+					}
+
+					if (record.Values[0] == record.Values[1]) {
+						// same document
+						continue
+					}
+
+					if record.Values[1] == nil {
+						// no links
+						continue
+					}
+
+					_,ok = nodeIds[ToInt(record.Values[1])]
+					if !ok {
+						nodeIds[ToInt(record.Values[1])] = 0
+					}
+
+					sourceId := ToInt(record.Values[0])
+					destId := ToInt(record.Values[1])
+					kwId := ToInt(record.Values[2])
+					kw := ToString(record.Values[3])
+
+					// add source node
+					nodeIds[sourceId] += 1
+					max = Max(max, nodeIds[sourceId])
+
+					// add dest node
+					nodeIds[destId] += 1
+					max = Max(max, nodeIds[sourceId])
+
+					linkMap[kwId] = kw
+					
+					link := make(map[string]interface{},0)
+					link["id"] = kwId
+					link["name"] = kw
+					link["source"] = sourceId
+					link["target"] = destId
+
+					links = append(links, link)
+				} else {
+					fmt.Println(record.Values)
+
+					// id(k), id(l), id(d), k.kw, l.kw
+
+					_,ok := nodeIds[ToInt(record.Values[0])]
+					if !ok {
+						nodeIds[ToInt(record.Values[0])] = 0
+					}
+
+					kwMap[ToInt(record.Values[0])] = ToString(record.Values[3])
+
+					if (record.Values[0] == record.Values[1]) {
+						// same document
+						continue
+					}
+
+					if record.Values[1] == nil {
+						// no links
+						continue
+					}
+
+					_,ok = nodeIds[ToInt(record.Values[1])]
+					if !ok {
+						nodeIds[ToInt(record.Values[1])] = 0
+					}
+
+					sourceId := ToInt(record.Values[0])
+					destId := ToInt(record.Values[1])
+					docId := ToInt(record.Values[2])
+					kw1 := ToString(record.Values[3])
+					kw2 := ToString(record.Values[4])
+
+					kwMap[sourceId] = kw1 
+					kwMap[destId] = kw2 
+
+					// add source node
+					nodeIds[sourceId] += 1
+					max = Max(max, nodeIds[sourceId])
+
+					// add dest node
+					nodeIds[destId] += 1
+					max = Max(max, nodeIds[sourceId])
+
+					texts, terr := ReadDocFS(driver, db, uid, docId) 
+					if terr != nil {
+						return nil, terr
+					}
+
+					link := make(map[string]interface{},0)
+					link["id"] = docId
+					link["name"] = texts.(map[string]interface{})["docName"].(string)
+					link["source"] = sourceId
+					link["target"] = destId
+
+					links = append(links, link)
+				}
+			}
+			return nil, nil
+		})
+	
+	if err != nil {
+		return nil, err
+	}
+
+	if (req.URL.Query()["q"][0] == "doc") {
+		for docId, weight := range nodeIds {
+			texts, terr := ReadDocFS(driver, db, uid, docId) 
+			if terr != nil {
+				return nil, terr
+			}
+			node := make(map[string]interface{},0)
+			node["id"] = docId
+			node["name"] = texts.(map[string]interface{})["docName"].(string)
+			node["weight"] = weight / max
+			nodes = append(nodes, node)
+		}
+	} else {
+		for kwId, weight := range nodeIds {
+			node := make(map[string]interface{},0)
+			node["id"] = kwId
+			node["name"] = kwMap[kwId]
+			node["weight"] = weight / max
+			nodes = append(nodes, node)
+		}
+	}
+	
+	resMap := make(map[string][]interface{}, 0)
+	resMap["nodes"] = nodes
+	resMap["links"] = links
+
+	return resMap, err
+}
 
 func clear(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -43,7 +247,13 @@ func clear(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 func requestHandler(driver neo4j.Driver, db Firestore, request string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, X-Auth-Token")
+		if req.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		req.Body = http.MaxBytesReader(w, req.Body, 1048576)
 		
 		body, err := decodeRequestBody(w, req)
@@ -57,18 +267,24 @@ func requestHandler(driver neo4j.Driver, db Firestore, request string) func(http
 			resp, err = Signup(driver, db, body)
 		case "login":
 			resp, err = Login(driver, db, body)
-		case "getDocId":
-			resp, err = GetDocId(driver, body.Uid, body.Doc.DocName)
 		case "writeDoc":
 			resp, err = WriteDoc(driver, db, body)
 		case "writeDocFS":
-			resp, err = WriteDocFS(db, body.Doc.DocId, body.Doc.DocText, body.Doc.RawDocText)
+			resp, err = WriteDocFS(driver, db, body.Uid, body.Doc.DocId, body.Doc.DocName, body.Doc.DocText, body.Doc.RawDocText)
 		case "readDoc":
 			resp, err = ReadDoc(driver, db, body)
 		case "readDocFS":
-			resp, err = ReadDocFS(db, body.Doc.DocId)
-		case "kw":
+			resp, err = ReadDocFS(driver, db, body.Uid, body.Doc.DocId)
+		case "getAllDocs":
+			resp, err = GetAllDocs(driver, db, body.Uid)
+		case "writeKw":
 			resp, err = WriteKw(driver, db, body)
+		case "getAllKws":
+			resp, err = GetAllKws(driver, db, body.Uid)
+		case "getAll":
+			resp, err = GetAll(driver, db, body.Uid, req)
+		case "related":
+			resp, err = MLRelated(driver, db, body)
 		case "clear":
 			resp, err = clear(driver, db, body)
 		default:
@@ -102,10 +318,10 @@ func main() {
 	}
 
 	ctx := context.Background()
-	// conf := &firebase.Config{ProjectID: "networknotes-305405"}
-	// app, err := firebase.NewApp(ctx, conf)
-	sa := option.WithCredentialsFile("credentials.json")
-	app, err := firebase.NewApp(ctx, nil, sa)
+	conf := &firebase.Config{ProjectID: "networknotes2"}
+	app, err := firebase.NewApp(ctx, conf)
+	// sa := option.WithCredentialsFile("../credentials2.json")
+	// app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -122,12 +338,16 @@ func main() {
 	serveMux.HandleFunc("/clear", requestHandler(driver, db, "clear"))
 	serveMux.HandleFunc("/signup", requestHandler(driver, db, "signup"))
 	serveMux.HandleFunc("/login", requestHandler(driver, db, "login"))
-	serveMux.HandleFunc("/getDocId", requestHandler(driver, db, "getDocId"))
 	serveMux.HandleFunc("/writeDoc", requestHandler(driver, db, "writeDoc"))
 	serveMux.HandleFunc("/writeDocFS", requestHandler(driver, db, "writeDocFS"))
 	serveMux.HandleFunc("/readDoc", requestHandler(driver, db, "readDoc"))
 	serveMux.HandleFunc("/readDocFS", requestHandler(driver, db, "readDocFS"))
-	serveMux.HandleFunc("/kw", requestHandler(driver, db, "kw"))
+	serveMux.HandleFunc("/getAllDocs", requestHandler(driver, db, "getAllDocs"))
+	serveMux.HandleFunc("/getAllKws", requestHandler(driver, db, "getAllKws"))
+	serveMux.HandleFunc("/getAll", requestHandler(driver, db, "getAll"))
+	serveMux.HandleFunc("/writeKw", requestHandler(driver, db, "writeKw"))
+
+	serveMux.HandleFunc("/related", requestHandler(driver, db, "related"))
 
 	fmt.Println("Running on localhost:8080")
 	panic(http.ListenAndServe(":8080", httpgzip.NewHandler(serveMux)))
@@ -164,7 +384,22 @@ func decodeRequestBody(w http.ResponseWriter, r *http.Request) (User, error) {
     dec := json.NewDecoder(r.Body)
     dec.DisallowUnknownFields()
 
-    err := dec.Decode(&u)
+	doc := Document {
+		DocId: -1,
+	}
+
+	u = User {
+		Doc: doc,
+	}
+
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		msg := "unable to parse request body"
+		http.Error(w, msg, http.StatusBadRequest)
+		return u, err
+	}
+
+    err = json.Unmarshal(bytes, &u)
     if err != nil {
         var syntaxError *json.SyntaxError
         var unmarshalTypeError *json.UnmarshalTypeError

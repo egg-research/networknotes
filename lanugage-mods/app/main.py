@@ -8,6 +8,8 @@ from lib.gpt import set_openai_key, Example
 from lib.gcp_cnl import top_keywords
 from lib.gpt_related_keywords import getRelatedKeywordGPT
 
+import requests, PyPDF2, io
+
 CONFIG_VAR = "OPENAI_CONFIG"
 KEY_NAME = "OPENAI_KEY"
 HEADER_REQUIREMENT = "NN_HEADER_CONFIG"
@@ -76,6 +78,28 @@ def keywords():
             response = str(['tomato', 'pear', 'cherry', 'ice cream', 'sweet', 'icing', 'sundae', 'sprinkles', 'brownie', 'matcha'])# str(top_keywords(prompt))
             return {'text': response}
     return 'Unable to reach endpoint'
+
+
+@app.route("/pdf", methods=["GET", "POST"])
+def pdf():
+    # This will call Google Cloud language service with top_keywords(prompt)
+    if request.json is not None and 'header_req' in request.json.keys():
+        if request.json['header_req'] == header_req:
+            prompt = request.json["url"]
+            return {'text': parse_pdf(prompt)}
+    return 'Unable to reach endpoint'
+
+def parse_pdf(url):
+    response = requests.get(url)
+    my_raw_data = response.content
+    
+    doc_text = ""
+    with io.BytesIO(response.content) as open_pdf_file:
+        read_pdf = PyPDF2.PdfFileReader(open_pdf_file)
+        num_pages = read_pdf.getNumPages()
+        for p in range(num_pages):
+            doc_text += read_pdf.getPage(p).extractText()
+    return doc_text
 
 
 if __name__=='__main__':
