@@ -6,8 +6,10 @@ import './SearchBar.css';
 export default function SearchBar({
   documents = [],
   keywords = [],
+  newKeyword,
   selectDocument,
   selectKeyword,
+  createKeyword,
   placeholder = 'Search',
 }) {
   const initDocs = documents;
@@ -23,8 +25,9 @@ export default function SearchBar({
     setValue('');
   }, [document, keywords]);
 
-  const autocompleteOptions = [
-    {
+  const autocompleteOptions = [];
+  if (keywords.length !== 0) {
+    autocompleteOptions.push({
       label: <span>Keywords</span>,
       options: searchedKeywords.map((keyword) => ({
         value: keyword.id,
@@ -32,8 +35,8 @@ export default function SearchBar({
         type: 'keyword',
         data: keyword,
       })),
-    },
-  ];
+    });
+  }
 
   if (documents.length !== 0) {
     autocompleteOptions.unshift({
@@ -44,6 +47,19 @@ export default function SearchBar({
         label: <div key={document.id}>{document.title}</div>,
         type: 'document',
       })),
+    });
+  }
+
+  if (newKeyword) {
+    autocompleteOptions.push({
+      label: <span>New Keyword</span>,
+      options: [
+        {
+          type: 'add',
+          label: <div>Add keyword: {value}</div>,
+          value,
+        },
+      ],
     });
   }
 
@@ -73,6 +89,8 @@ export default function SearchBar({
       selectDocument(instance.data);
     } else if (instance.type === 'keyword' && selectKeyword) {
       selectKeyword(instance.data);
+    } else {
+      createKeyword(value);
     }
     setValue('');
   };

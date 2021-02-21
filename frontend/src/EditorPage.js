@@ -1,7 +1,7 @@
 import React, { useState, useRef, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { Button, Space, Typography, Divider, Tag } from 'antd';
+import { Button, Space, Typography, Divider, Tag, Spin } from 'antd';
 import { PlusOutlined, FileOutlined } from '@ant-design/icons';
 import { useEffectOnce } from 'react-use';
 
@@ -43,6 +43,8 @@ function SideDisplay({
   document,
   allKeywords,
   suggestedKeywords,
+  createKeyword,
+  loading,
   addKeyword,
   removeKeyword,
 }) {
@@ -79,27 +81,31 @@ function SideDisplay({
             />
           </div>
         </Typography>
-        {showSearch && (
-          <div style={{ marginBottom: 8 }}>
-            <SearchBar
-              keywords={allKeywords}
-              selectKeyword={(keyword) => addKeyword(keyword.name)}
-            />
-          </div>
-        )}
-        <Space direction='vertical'>
-          <div>
-            {keywords.map((keyword) => (
-              <Tag
-                closable
-                key={keyword}
-                onClose={() => removeKeyword(keyword)}
-              >
-                {keyword}
-              </Tag>
-            ))}
-          </div>
-        </Space>
+        <Spin spinning={loading}>
+          {showSearch && (
+            <div style={{ marginBottom: 8 }}>
+              <SearchBar
+                keywords={allKeywords}
+                newKeyword
+                createKeyword={createKeyword}
+                selectKeyword={(keyword) => addKeyword(keyword.name)}
+              />
+            </div>
+          )}
+          <Space direction='vertical'>
+            <div>
+              {keywords.map((keyword) => (
+                <Tag
+                  closable
+                  key={keyword}
+                  onClose={() => removeKeyword(keyword)}
+                >
+                  {keyword}
+                </Tag>
+              ))}
+            </div>
+          </Space>
+        </Spin>
       </div>
       <Divider dashed />
       <div>
@@ -118,6 +124,7 @@ export default function EditorPage() {
   const [keywords, setKeywords] = useState([]);
   const [document, setDocument] = useState(null);
   const [allKeywords, setAllKeywords] = useState([]);
+  const [loading, setLoading] = useState(false);
   const ref = useRef(null);
   const { id } = useParams();
   const docId = parseInt(id, 10);
@@ -127,24 +134,23 @@ export default function EditorPage() {
     const res = await readDoc(userId, docId);
     setDocument(res.document);
     setKeywords(res.keywords);
-    const initData = res.document.rawText
-      ? createEditorState(res.document.rawText)
-      : createEditorState();
+    const initData =
+      res.document.rawText !== ''
+        ? createEditorState(res.document.rawText)
+        : createEditorState();
     setData(initData);
   });
 
   useEffectOnce(async () => {
     const res = await getAllKeywords(userId);
-    console.log(res);
     setAllKeywords(res);
   });
 
   const onChange = (editorState) => {
-    const rawText = convertToRaw(editorState.getCurrentContent());
-    const text = editorState.getCurrentContent().getPlainText();
-
     tick += 1;
-    if (tick > 20) {
+    if (tick > 5) {
+      const rawText = convertToRaw(editorState.getCurrentContent());
+      const text = editorState.getCurrentContent().getPlainText();
       updateDoc(userId, docId, document.title, text, rawText);
       tick = 0;
     }
@@ -170,12 +176,24 @@ export default function EditorPage() {
     setKeywords(newKeywords);
   };
 
+  const createKeyword = async (kw) => {
+    setLoading(true);
+    const newKeywords = Array.from(keywords.concat([kw]));
+    await updateDocKeyword(userId, docId, newKeywords);
+    setKeywords(newKeywords);
+    const res = await getAllKeywords(userId);
+    setAllKeywords(res);
+    setLoading(false);
+  };
+
   const Side = (
     <SideDisplay
       document={{ title: document ? document.title : '', keywords }}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
       addKeyword={addKeyword}
+      createKeyword={createKeyword}
+      loading={loading}
     />
   );
 

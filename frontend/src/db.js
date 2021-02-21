@@ -173,6 +173,7 @@ export async function updateDocKeyword(uid, docId, keywords) {
     },
     Kws: keywords.map((x) => ({ Kw: x, KwText: '' })),
   });
+
   const res = await fetch(`${baseUrl}/writeKw`, {
     method: 'POST',
     headers: {
