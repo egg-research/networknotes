@@ -15,8 +15,16 @@ HEADER_REQUIREMENT = "NN_HEADER_CONFIG"
 """Creates Flask app to serve the React app."""
 app = Flask(__name__)
 
-app.config.from_envvar(CONFIG_VAR)
-set_openai_key(app.config[KEY_NAME])
+
+def list_files(startpath):
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * (level)
+        print('{}{}/'.format(indent, os.path.basename(root)))
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            print('{}{}'.format(subindent, f))
+#list_files('./')
 
 header_req = HEADER_REQUIREMENT
 header_dir = os.environ[HEADER_REQUIREMENT]
@@ -25,6 +33,9 @@ with open(header_dir) as f:
 header_req = str(header_req[0])[:-1]
 
 gpt = getRelatedKeywordGPT()
+
+app.config.from_envvar(CONFIG_VAR)
+set_openai_key(app.config[KEY_NAME])
 
 @app.route('/')
 def hello():
@@ -45,8 +56,8 @@ def get_example(example_id=None):
 
 @app.route("/related", methods=["GET", "POST"])
 def related():
-    # This will call GPT3 service with gpt.submit_request(prompt)
-    if 'header_req' in request.json.keys():
+    # This will call GPT3 service with gpt.submit_request(prompt)i
+    if request.json is not None and 'header_req' in request.json.keys():
         if request.json['header_req'] == header_req:
             prompt = request.json["prompt"]
             response = 'a, nice, list, of, related, keywords' # gpt.submit_request(prompt) 
@@ -59,7 +70,7 @@ def related():
 @app.route("/keywords", methods=["GET", "POST"])
 def keywords():
     # This will call Google Cloud language service with top_keywords(prompt)
-    if 'header_req' in request.json.keys():
+    if request.json is not None and 'header_req' in request.json.keys():
         if request.json['header_req'] == header_req:
             prompt = request.json["prompt"]
             response = str(['tomato', 'pear', 'cherry', 'ice cream', 'sweet', 'icing', 'sundae', 'sprinkles', 'brownie', 'matcha'])# str(top_keywords(prompt))
