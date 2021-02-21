@@ -34,9 +34,43 @@ function ViewSwitch({ className, setView }) {
 }
 
 function TableContainer({ tableData, className }) {
+  console.log("TABLE DATA", tableData)
+ 
+  const docMap = new Map()
+  const docKwMap = new Map()
+  const links = tableData.links
+  const nodes = tableData.nodes
+  links.forEach((link) => {
+    const source = link.source
+    const target = link.target
+    if (!docKwMap.has(source)) {
+      docKwMap[source] = new Set()
+    }
+    if (!docKwMap.has(target)) {
+      docKwMap[target] = new Set()
+    }
+    
+    docKwMap[source].add(link.name)
+    docKwMap[target].add(link.name)
+  })
+
+  nodes.forEach((node) => {
+    docMap[node.id] = node.name
+  })
+
+  const result = []
+  docMap.forEach(function (name, id) {
+    console.log(name, id)
+    result.push({
+      "name": docMap[id],
+      "id": id,
+      "keywords": Array.from(docKwMap[id])
+    })
+  })
+  console.log("result", result)
   return (
     <div className={className}>
-      <DocumentTable data={tableData} className='table' />
+      <DocumentTable data={result} className='table' />
     </div>
   );
 }
@@ -120,7 +154,7 @@ export default function GraphPage() {
       ) : (
         <TableContainer
           className='content-container'
-          // tableData={documentData}
+          tableData={rawDocGraph}
         />
       )}
     </Layout>

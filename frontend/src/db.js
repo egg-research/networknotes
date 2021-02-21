@@ -1,5 +1,5 @@
 const baseUrl = 'http://networknotes2.wl.r.appspot.com';
-const userId = 28;
+const userId = 10;
 
 // return as int
 export async function getUserId(username) {

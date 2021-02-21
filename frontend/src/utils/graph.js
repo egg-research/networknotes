@@ -22,6 +22,8 @@
 // };
 
 export function processGraph(graph) {
+  console.log(graph)
+
   const nodeMap = {};
   for (const node of graph.nodes) {
     nodeMap[node.id] = node;
@@ -35,6 +37,7 @@ export function processGraph(graph) {
   graph.links.forEach((link) => {
     const a = nodeMap[link.source];
     const b = nodeMap[link.target];
+    if (!a || !b) return
 
     a.neighbors.push(b);
     b.neighbors.push(a);

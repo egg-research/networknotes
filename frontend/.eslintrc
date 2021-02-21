@@ -37,6 +37,8 @@
     "no-param-reassign": "off",
     "no-unused-expressions": "off",
     "no-restricted-syntax": "off",
-    "import/extensions": "off"
-  },
+    "import/extensions": "off",
+    "prefer-destructuring": "off",
+    "prefer-arrow-callback": "off"
+  }
 }
