@@ -2,6 +2,7 @@ from http import HTTPStatus
 import json
 import openai
 from flask import Flask, request, Response
+from flask_cors import CORS, cross_origin
 import os
 
 from lib.gpt import set_openai_key, Example
@@ -16,7 +17,8 @@ HEADER_REQUIREMENT = "NN_HEADER_CONFIG"
 
 """Creates Flask app to serve the React app."""
 app = Flask(__name__)
-
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 def list_files(startpath):
     for root, dirs, files in os.walk(startpath):
@@ -40,10 +42,12 @@ app.config.from_envvar(CONFIG_VAR)
 set_openai_key(app.config[KEY_NAME])
 
 @app.route('/')
+@cross_origin()
 def hello():
     return "EGG Networked Notes: Language Model endpoints!"
 
 @app.route('/gpt_examples', methods=['GET'])
+@cross_origin()
 def get_example(example_id=None):
     """Gets a single example or all the examples."""
     # This is all local, requires no external GPT3 calls
@@ -57,6 +61,7 @@ def get_example(example_id=None):
     return json.dumps(example.as_dict())
 
 @app.route("/related", methods=["GET", "POST"])
+@cross_origin()
 def related():
     # This will call GPT3 service with gpt.submit_request(prompt)i
     if request.json is not None and 'header_req' in request.json.keys():
@@ -70,6 +75,7 @@ def related():
     return 'Unable to reach endpoint'
 
 @app.route("/keywords", methods=["GET", "POST"])
+@cross_origin()
 def keywords():
     # This will call Google Cloud language service with top_keywords(prompt)
     if request.json is not None and 'header_req' in request.json.keys():
@@ -81,6 +87,7 @@ def keywords():
 
 
 @app.route("/pdf", methods=["GET", "POST"])
+@cross_origin()
 def pdf():
     # This will call Google Cloud language service with top_keywords(prompt)
     if request.json is not None and 'header_req' in request.json.keys():
