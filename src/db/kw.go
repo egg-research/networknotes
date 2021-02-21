@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"errors"
 	"strconv"
 	"github.com/fatih/structs"
@@ -54,12 +55,13 @@ func mapKeywords(kws []Keyword) []map[string]interface{} {
 func AddKw(driver neo4j.Driver, db Firestore, uid int, docId int, kws []Keyword) (interface{}, error) {
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
+
 	kwIds, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			`
 			UNWIND $kws as kw
-			MATCH (u:User) WHERE id(u) = $uid
-			MATCH (d:Document) WHERE id(d) = $docId  
+			MATCH (u:User) WHERE id(u) = $uid 
+			MATCH (d:Document) WHERE id(d) = $docId 
 			MERGE (k:Keyword {kw:kw.Kw})
 			MERGE (u)-[:DOCUMENT]->(d)
 			MERGE (k)-[:DOCUMENT]->(d)
@@ -83,6 +85,7 @@ func AddKw(driver neo4j.Driver, db Firestore, uid int, docId int, kws []Keyword)
 		return nil, result.Err()
 	})
 
+	fmt.Println(kwIds)
 	for index, kwId := range kwIds.([]interface{}) {
 		kw := kws[index]
 		WriteKwFS(driver, db, kw, toInt(kwId))
@@ -104,6 +107,47 @@ func WriteKw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) 
 		return nil, err
 	}
 	return resp, err
+}
+
+
+func DelKw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
+	if !CheckUid(driver, body.Uid) {
+		return nil, errors.New("User does not exist")
+	}
+
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			`
+			UNWIND $kws as kw
+			MATCH (u:User) WHERE id(u) = $uid
+			MATCH (k:Keyword {kw:kw.Kw}) <-[e]- (u)
+			MATCH (k:Keyword {kw:kw.Kw}) -[f]-> (d:Document) <-- (u)
+			MATCH (k:Keyword {kw:kw.Kw}) <-[g]- (d:Document) <-- (u)
+			DELETE e
+			DELETE f
+			DELETE g
+			`,
+			map[string]interface{}{
+				"uid":body.Uid,
+				"kws":mapKeywords(body.Kws),
+			})
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Next() {
+			return result.Record().Values[0], nil
+		}
+		return nil, result.Err()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func WriteKwFS(driver neo4j.Driver, db Firestore, kw Keyword, kwId int) (interface{}, error) {	

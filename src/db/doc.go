@@ -226,3 +226,79 @@ func GetAllDocs(driver neo4j.Driver, db Firestore, uid int) (map[int]interface{}
 	}
 	return res, nil
 }
+
+
+func DelDoc(driver neo4j.Driver, db Firestore, uid int, docId int) (interface{}, error) {
+	if !CheckUid(driver, uid) {
+		return nil, errors.New("User does not exist")
+	}
+
+	if !CheckDocId(driver, uid, docId) {
+		return nil, errors.New("Doc does not exist")
+	}
+
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			`
+			MATCH (u:User) WHERE id(u) = $uid
+			MATCH (d:Document) WHERE id(d) = $docId
+			DETACH DELETE d
+			`,
+			map[string]interface{}{
+				"uid":uid,
+				"docId":docId,
+			})
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Next() {
+			return result.Record().Values[0], nil
+		}
+		return nil, result.Err()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+
+func CreateDoc(driver neo4j.Driver, db Firestore, uid int, docId int) (interface{}, error) {
+	if !CheckUid(driver, uid) {
+		return nil, errors.New("User does not exist")
+	}
+
+	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+
+	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			`
+			MATCH (u:User) WHERE id(u) = $uid
+			CREATE (d:Document) SET d.id = $docId
+			CREATE (u)-[:DOCUMENT]->(d) 
+			`,
+			map[string]interface{}{
+				"uid":uid,
+				"docId":docId,
+			})
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Next() {
+			return result.Record().Values[0], nil
+		}
+		return nil, result.Err()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
