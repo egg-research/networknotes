@@ -22,6 +22,8 @@
 // };
 
 export function processGraph(graph) {
+  console.log(graph)
+
   const nodeMap = {};
   for (const node of graph.nodes) {
     nodeMap[node.id] = node;

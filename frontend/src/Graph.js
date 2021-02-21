@@ -81,7 +81,7 @@ function Graph({ data, height, width, setNode }) {
       width={width}
       nodeLabel={() => undefined}
       linkLabel={(link) => link.name}
-      nodeCanvasObject={(node, ctx) => paintNode(node, 'red', ctx)}
+      nodeCanvasObject={(node, ctx) => paintNode(node, '#63ace5', ctx)}
       nodePointerAreaPaint={areaPaint}
       onNodeClick={(node) => history.push(`/document/${node.id}`)}
     />
