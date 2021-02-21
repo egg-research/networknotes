@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 
+import { Empty } from 'antd';
 import { ForceGraph2D } from 'react-force-graph';
 
 const NODE_R = 8;
@@ -20,7 +21,21 @@ function Graph({ data, height, width }) {
     }, 0);
   }, []);
 
-  console.log('rendering graph');
+  if (data.nodes.length === 0) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Empty style={{ height: 200 }} />
+      </div>
+    );
+  }
 
   const handleNodeHover = (node) => {
     const newHighlights = {
