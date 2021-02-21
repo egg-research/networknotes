@@ -15,37 +15,6 @@ import { genRandomTree } from './utils/Data';
 import { processGraph, applyGraphFilter } from './utils/graph';
 import './GraphPage.css';
 
-const documentData = [
-  {
-    id: 0,
-    key: 0,
-    name: 'Intro to Machine Learning',
-    lastAccessed: '8:35pm Apr 20, 2020',
-    keywords: ['CNN', 'RNN'],
-  },
-  {
-    id: 1,
-    key: 1,
-    name: 'Computer Vision',
-    lastAccessed: '8:35pm Apr 20, 2020',
-    keywords: ['CNN', 'RNN'],
-  },
-  {
-    id: 2,
-    key: 2,
-    name: 'Advanced Data Structures',
-    lastAccessed: '8:35pm Apr 20, 2020',
-    keywords: ['Trie', 'Skip List'],
-  },
-];
-
-const keywords = [
-  { id: 0, name: 'CNN' },
-  { id: 1, name: 'RNN' },
-  { id: 2, name: 'Trie' },
-  { id: 3, name: 'Skip List' },
-];
-
 function ViewSwitch({ className, setView }) {
   const onChange = (e) => {
     setView(e.target.value);
@@ -97,23 +66,17 @@ export default function GraphPage() {
   );
 
   useEffectOnce(async () => {
-    const x = await getDocGraph(userId);
-    setRawDocGraph(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getKeywordGraph(userId);
-    setRawKeywordGraph(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getAllKeywords(userId);
-    setAllKeywords(x);
-  });
-
-  useEffectOnce(async () => {
-    const x = await getAllDocs(userId);
-    setAllDocuments(x);
+    Promise.all([
+      getDocGraph(userId),
+      getKeywordGraph(userId),
+      getAllKeywords(userId),
+      getAllDocs(userId),
+    ]).then((values) => {
+      setRawDocGraph(values[0]);
+      setRawKeywordGraph(values[1]);
+      setAllKeywords(values[2]);
+      setAllDocuments(values[3]);
+    });
   });
 
   const data = processGraph(rawDocGraph);
@@ -157,7 +120,7 @@ export default function GraphPage() {
       ) : (
         <TableContainer
           className='content-container'
-          tableData={documentData}
+          // tableData={documentData}
         />
       )}
     </Layout>
