@@ -54,11 +54,13 @@ func GetDoc(driver neo4j.Driver, uid int, docId int) (interface{}, error) {
 	kws, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			`
-			MATCH (n) WHERE id(n) = $docId
-			MATCH (n) -[r]-> (kw)
-			RETURN kw.kw, r.kwText
+			MATCH (d:Document) WHERE id(d) = $docId
+			MATCH (d) -[r]-> (kw)
+			RETURN collect(kw.kw), collect(r.kwText)
 			`,
-			map[string]interface{}{"docId":docId})
+			map[string]interface{}{
+				"docId":docId,
+			})
 
 		if err != nil {
 			return nil, err

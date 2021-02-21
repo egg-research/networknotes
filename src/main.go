@@ -139,6 +139,8 @@ func GetAll(driver neo4j.Driver, db Firestore, uid int, req *http.Request) (inte
 						nodeIds[ToInt(record.Values[0])] = 0
 					}
 
+					kwMap[ToInt(record.Values[0])] = ToString(record.Values[3])
+
 					if (record.Values[0] == record.Values[1]) {
 						// same document
 						continue
@@ -158,7 +160,7 @@ func GetAll(driver neo4j.Driver, db Firestore, uid int, req *http.Request) (inte
 					destId := ToInt(record.Values[1])
 					docId := ToInt(record.Values[2])
 					kw1 := ToString(record.Values[3])
-					kw2 := ToString(record.Values[3])
+					kw2 := ToString(record.Values[4])
 
 					kwMap[sourceId] = kw1 
 					kwMap[destId] = kw2 
@@ -389,7 +391,6 @@ func decodeRequestBody(w http.ResponseWriter, r *http.Request) (User, error) {
 	u = User {
 		Doc: doc,
 	}
-
 
 	bytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
