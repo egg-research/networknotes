@@ -1,5 +1,5 @@
 const baseUrl = 'http://networknotes2.wl.r.appspot.com';
-const userId = 28;
+const userId = 32;
 
 // return as int
 export async function getUserId(username) {
@@ -78,6 +78,20 @@ export async function readDoc(uid, docId) {
     },
   };
 }
+
+// curl --header "Content-Type: application/json" \
+//   --request POST \
+//   --data '{"Uid":31, "Kws": [{"Kw":"RNN"}, {"Kw":"CNN"}]}' \
+//  localhost:8080/delKw
+
+// export async function removeKeyword(uid, kw) {
+//   const body = JSON.stringify({
+//     Uid: uid,
+//     Kws: {
+//       Kw: kw,
+//     },
+//   });
+// }
 
 // return array of {id: "33", title: "title", text: "", rawText: ""}
 export async function getAllDocs(uid) {

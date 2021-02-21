@@ -27,6 +27,7 @@ import UserContext from './context';
 import { readDoc, updateDoc, getAllKeywords, updateDocKeyword, getRelatedKwds} from './db';
 
 const { Text, Paragraph, Title } = Typography;
+const { CheckableTag } = Tag;
 
 function EditorBlock({ ref, data, onChange }) {
   return (
@@ -43,9 +44,12 @@ function EditorBlock({ ref, data, onChange }) {
 function SideDisplay({
   document,
   allKeywords,
+  suggestedKeywords,
+  addSuggestedKeywords,
   createKeyword,
   removeSugKeyword,
   loading,
+  loadingSuggested,
   addKeyword,
   removeKeyword,
 }) {
@@ -112,19 +116,22 @@ function SideDisplay({
       <div>
         <Typography>
           <Title level={4}>Suggested Keywords</Title>
-          <Space direction='vertical'>
-            <div>
-              {suggested.map((sug_kw) => (
-                <Tag
-                  closable
-                  key={sug_kw}
-                  onClose={() => removeSugKeyword(sug_kw)}
-                >
-                  {sug_kw}
-                </Tag>
-              ))}
-            </div>
-          </Space>
+          <Spin spinning={loadingSuggested}>
+            <Space direction='vertical'>
+              <div>
+                {suggestedKeywords.map((keyword) => (
+                  <CheckableTag
+                    closable
+                    key={keyword}
+                    onChange={() => addSuggestedKeywords(keyword)}
+                    onClose={() => removeSugKeyword(keyword)}
+                  >
+                    {keyword}
+                  </CheckableTag>
+                ))}
+              </div>
+            </Space>
+          </Spin>
         </Typography>
       </div>
     </>
@@ -139,7 +146,9 @@ export default function EditorPage() {
   const [document, setDocument] = useState(null);
   const [suggested, setSuggested] = useState([]);
   const [allKeywords, setAllKeywords] = useState([]);
+  const [suggestedKeywords, setSuggestedKeywords] = useState(['Blockchain']);
   const [loading, setLoading] = useState(false);
+  const [loadingSuggested, setLoadingSuggested] = useState(false);
   const ref = useRef(null);
   const { id } = useParams();
   const docId = parseInt(id, 10);
@@ -210,6 +219,14 @@ export default function EditorPage() {
     setLoading(false);
   };
 
+  const addSuggested = async (kw) => {
+    setLoadingSuggested(true);
+    await createKeyword(kw);
+    const newKeywords = Array.from(suggestedKeywords.filter((y) => y !== kw));
+    setSuggestedKeywords(newKeywords);
+    setLoadingSuggested(false);
+  };
+
   const Side = (
     <SideDisplay
       document={{ title: document ? document.title : '', keywords, suggested}}
@@ -218,7 +235,10 @@ export default function EditorPage() {
       removeSugKeyword={removeSugKeyword}
       addKeyword={addKeyword}
       createKeyword={createKeyword}
+      addSuggestedKeywords={addSuggested}
+      suggestedKeywords={suggestedKeywords}
       loading={loading}
+      loadingSuggested={loadingSuggested}
     />
   );
 

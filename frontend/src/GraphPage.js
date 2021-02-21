@@ -9,20 +9,22 @@ import CreateDocumentForm from './CreateDocumentForm';
 import SettingsCard from './SettingsCard';
 import Bread from './Bread';
 import UserContext from './context';
-import { makeNewDoc, getDocGraph, getKeywordGraph, getAllKeywords, getAllDocs } from './db';
+import {
+  makeNewDoc,
+  getDocGraph,
+  getKeywordGraph,
+  getAllKeywords,
+  getAllDocs,
+} from './db';
 import { getText } from './ml';
 
-import InputFile from './InputFile'
-import PDFToText from './PDFToText'
+import InputFile from './InputFile';
 
 import { genRandomTree } from './utils/Data';
 import { processGraph, applyGraphFilter } from './utils/graph';
 import './GraphPage.css';
 
-
-
 const { Search } = Input;
-
 
 const documentData = [
   {
@@ -95,10 +97,9 @@ export default function GraphPage() {
   });
   const userId = useContext(UserContext);
 
-  const uploadFileHandler = e => {
+  const uploadFileHandler = (e) => {
     console.log(e.target.files[0]);
-    // PDFToText({path:e.target.files[0]});
-  }
+  };
 
   async function onUpload(e) {
     console.log(e);
@@ -114,12 +115,13 @@ export default function GraphPage() {
       <Divider dashed />
       <CreateDocumentForm />
       <InputFile uploadFileHandler={uploadFileHandler}>
-          Select a PDF file
+        Select a PDF file
       </InputFile>
-      <Search className="pdfURL"
-        placeholder="input URL"
-        enterButton="Upload"
-        size="small"
+      <Search
+        className='pdfURL'
+        placeholder='input URL'
+        enterButton='Upload'
+        size='small'
         onSearch={onUpload}
       />
     </>
