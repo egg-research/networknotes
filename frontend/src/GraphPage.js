@@ -168,6 +168,8 @@ export default function GraphPage() {
       getAllKeywords(userId),
       getAllDocs(userId),
     ]).then((values) => {
+      // console.log('value-----------------');
+      // console.log(values[0]);
       setRawDocGraph(values[0]);
       setRawKeywordGraph(values[1]);
       setAllKeywords(values[2]);
@@ -175,7 +177,8 @@ export default function GraphPage() {
     });
   });
 
-  const data = processGraph(rawDocGraph);
+  const graphCopy = { ...rawDocGraph };
+  const data = processGraph(graphCopy);
   const graphData = applyGraphFilter(data, documentFilter, keywordFilter);
 
   return (

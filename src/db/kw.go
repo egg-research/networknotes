@@ -115,6 +115,10 @@ func DelKw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 		return nil, errors.New("User does not exist")
 	}
 
+	if !CheckDocId(driver, body.Uid, body.Doc.DocId)  {
+		return nil, errors.New("User does not exist")
+	}
+
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 
@@ -123,6 +127,7 @@ func DelKw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 			`
 			UNWIND $kws as kw
 			MATCH (u:User) WHERE id(u) = $uid
+			MATCH (d:Document) WHERE id(d) = $docId
 			MATCH (k:Keyword {kw:kw.Kw}) <-[e]- (u)
 			MATCH (k:Keyword {kw:kw.Kw}) -[f]-> (d:Document) <-- (u)
 			MATCH (k:Keyword {kw:kw.Kw}) <-[g]- (d:Document) <-- (u)
@@ -132,6 +137,7 @@ func DelKw(driver neo4j.Driver, db Firestore, body User) (interface{}, error) {
 			`,
 			map[string]interface{}{
 				"uid":body.Uid,
+				"docId":body.Doc.DocId,
 				"kws":mapKeywords(body.Kws),
 			})
 		if err != nil {
