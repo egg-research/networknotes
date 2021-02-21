@@ -44,10 +44,8 @@ function EditorBlock({ ref, data, onChange }) {
 function SideDisplay({
   document,
   allKeywords,
-  suggestedKeywords,
   addSuggestedKeywords,
   createKeyword,
-  removeSugKeyword,
   loading,
   loadingSuggested,
   addKeyword,
@@ -119,12 +117,10 @@ function SideDisplay({
           <Spin spinning={loadingSuggested}>
             <Space direction='vertical'>
               <div>
-                {suggestedKeywords.map((keyword) => (
+                {suggested.map((keyword) => (
                   <CheckableTag
-                    closable
                     key={keyword}
                     onChange={() => addSuggestedKeywords(keyword)}
-                    onClose={() => removeSugKeyword(keyword)}
                   >
                     {keyword}
                   </CheckableTag>
@@ -146,7 +142,6 @@ export default function EditorPage() {
   const [document, setDocument] = useState(null);
   const [suggested, setSuggested] = useState([]);
   const [allKeywords, setAllKeywords] = useState([]);
-  const [suggestedKeywords, setSuggestedKeywords] = useState(['Blockchain']);
   const [loading, setLoading] = useState(false);
   const [loadingSuggested, setLoadingSuggested] = useState(false);
   const ref = useRef(null);
@@ -203,11 +198,6 @@ export default function EditorPage() {
     setKeywords(newKeywords);
   };
 
-  const removeSugKeyword = (kw) => {
-    const newSuggested = Array.from(suggested.filter((y) => y !== kw));
-    setSuggested(newSuggested);
-  };
-
 
   const createKeyword = async (kw) => {
     setLoading(true);
@@ -222,8 +212,8 @@ export default function EditorPage() {
   const addSuggested = async (kw) => {
     setLoadingSuggested(true);
     await createKeyword(kw);
-    const newKeywords = Array.from(suggestedKeywords.filter((y) => y !== kw));
-    setSuggestedKeywords(newKeywords);
+    const newKeywords = Array.from(suggested.filter((y) => y !== kw));
+    setSuggested(newKeywords);
     setLoadingSuggested(false);
   };
 
@@ -232,11 +222,9 @@ export default function EditorPage() {
       document={{ title: document ? document.title : '', keywords, suggested}}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
-      removeSugKeyword={removeSugKeyword}
       addKeyword={addKeyword}
       createKeyword={createKeyword}
       addSuggestedKeywords={addSuggested}
-      suggestedKeywords={suggestedKeywords}
       loading={loading}
       loadingSuggested={loadingSuggested}
     />
