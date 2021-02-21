@@ -13,4 +13,5 @@ yarn-debug.log*
 yarn-error.log*
 
 pkg
-src/*.json
+credentials.json
+credentials2.json
