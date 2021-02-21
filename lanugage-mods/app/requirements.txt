@@ -3,4 +3,4 @@ openai==0.2.4
 google-cloud-language==2.0.0
 PyPDF2==1.26.0
 requests==2.22.0
-
+flask-cors==3.0.10

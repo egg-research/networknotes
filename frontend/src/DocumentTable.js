@@ -11,11 +11,11 @@ const columns = [
     dataIndex: 'name',
     key: 'name',
   },
-  {
-    title: 'Last Accessed',
-    dataIndex: 'lastAccessed',
-    key: 'lastAccessed',
-  },
+  // {
+  //   title: 'Last Accessed',
+  //   dataIndex: 'lastAccessed',
+  //   key: 'lastAccessed',
+  // },
   {
     title: 'Keywords',
     dataIndex: 'keywords',
