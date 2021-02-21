@@ -184,3 +184,23 @@ export async function updateDocKeyword(uid, docId, keywords) {
 
   return res.json();
 }
+
+
+export async function getRelatedKwds(uid, docId) {
+  const body = JSON.stringify({
+    Uid: uid,
+    Doc: {
+      DocId: docId,
+    }
+  });
+
+  const res = await fetch(`${baseUrl}/related`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+
+  return res.json();
+}

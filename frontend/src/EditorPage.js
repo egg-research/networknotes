@@ -5,6 +5,7 @@ import { Button, Space, Typography, Divider, Tag, Spin } from 'antd';
 import { PlusOutlined, FileOutlined } from '@ant-design/icons';
 import { useEffectOnce } from 'react-use';
 
+
 import {
   Editor,
   createEditorState,
@@ -23,7 +24,7 @@ import Layout from './Layout';
 import Bread from './Bread';
 
 import UserContext from './context';
-import { readDoc, updateDoc, getAllKeywords, updateDocKeyword } from './db';
+import { readDoc, updateDoc, getAllKeywords, updateDocKeyword, getRelatedKwds} from './db';
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -42,15 +43,15 @@ function EditorBlock({ ref, data, onChange }) {
 function SideDisplay({
   document,
   allKeywords,
-  suggestedKeywords,
   createKeyword,
+  removeSugKeyword,
   loading,
   addKeyword,
   removeKeyword,
 }) {
   const [showSearch, setShowSearch] = useState(false);
 
-  const { title, keywords } = document;
+  const { title, keywords, suggested } = document;
   return (
     <>
       <Bread>
@@ -111,6 +112,19 @@ function SideDisplay({
       <div>
         <Typography>
           <Title level={4}>Suggested Keywords</Title>
+          <Space direction='vertical'>
+            <div>
+              {suggested.map((sug_kw) => (
+                <Tag
+                  closable
+                  key={sug_kw}
+                  onClose={() => removeSugKeyword(sug_kw)}
+                >
+                  {sug_kw}
+                </Tag>
+              ))}
+            </div>
+          </Space>
         </Typography>
       </div>
     </>
@@ -123,6 +137,7 @@ export default function EditorPage() {
   const [data, setData] = useState(createEditorState());
   const [keywords, setKeywords] = useState([]);
   const [document, setDocument] = useState(null);
+  const [suggested, setSuggested] = useState([]);
   const [allKeywords, setAllKeywords] = useState([]);
   const [loading, setLoading] = useState(false);
   const ref = useRef(null);
@@ -132,8 +147,11 @@ export default function EditorPage() {
 
   useEffectOnce(async () => {
     const res = await readDoc(userId, docId);
+    const related_res = await getRelatedKwds(userId, docId);
     setDocument(res.document);
     setKeywords(res.keywords);
+    let suggested_kws = related_res.generated.concat(related_res.kws);
+    setSuggested(suggested_kws);
     const initData =
       res.document.rawText !== ''
         ? createEditorState(res.document.rawText)
@@ -176,6 +194,12 @@ export default function EditorPage() {
     setKeywords(newKeywords);
   };
 
+  const removeSugKeyword = (kw) => {
+    const newSuggested = Array.from(suggested.filter((y) => y !== kw));
+    setSuggested(newSuggested);
+  };
+
+
   const createKeyword = async (kw) => {
     setLoading(true);
     const newKeywords = Array.from(keywords.concat([kw]));
@@ -188,9 +212,10 @@ export default function EditorPage() {
 
   const Side = (
     <SideDisplay
-      document={{ title: document ? document.title : '', keywords }}
+      document={{ title: document ? document.title : '', keywords, suggested}}
       allKeywords={allKeywords}
       removeKeyword={removeKeyword}
+      removeSugKeyword={removeSugKeyword}
       addKeyword={addKeyword}
       createKeyword={createKeyword}
       loading={loading}
