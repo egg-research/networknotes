@@ -15,6 +15,7 @@ function Graph({ data, height, width, setNode }) {
 
   const ref = useRef(null);
   const history = useHistory();
+
   useEffect(() => {
     setTimeout(() => {
       if (ref && ref.current) {

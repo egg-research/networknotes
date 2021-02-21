@@ -5,7 +5,7 @@ import { Radio, Divider } from 'antd';
 import Graph from './Graph';
 import Layout from './Layout';
 import DocumentTable from './DocumentTable';
-import SearchBar from './SearchBar';
+import CreateDocumentForm from './CreateDocumentForm';
 import SettingsCard from './SettingsCard';
 import Bread from './Bread';
 
@@ -81,7 +81,7 @@ export default function GraphPage() {
     <>
       <Bread />
       <Divider dashed />
-      <SearchBar documents={documentData} keywords={keywords} />
+      <CreateDocumentForm />
     </>
   );
 

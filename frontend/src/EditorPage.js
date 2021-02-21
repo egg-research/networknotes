@@ -117,7 +117,6 @@ export default function EditorPage() {
   const { id } = useParams();
 
   const onChange = (editorState) => {
-    // console.log(editorState.getCurrentContent().getPlainText());
     setData(editorState);
   };
 
@@ -134,17 +133,18 @@ export default function EditorPage() {
   };
 
   const addKeyword = (keyword) => {
-    for (const kw in keywords) {
+    for (const kw of keywords) {
       if (kw.id === keyword.id) {
         return;
       }
     }
-    console.log(Array.from(keywords + [keyword]));
-    setKeywords(Array.from(keywords + [keyword]));
+    const newKeywords = Array.from(keywords.concat([keyword]));
+    setKeywords(newKeywords);
   };
 
   const removeKeyword = (kwId) => {
-    setKeywords(Array.from(keywords.filter((y) => y.id !== kwId)));
+    const newKeywords = Array.from(keywords.filter((y) => y.id !== kwId));
+    setKeywords(newKeywords);
   };
 
   const Side = (
